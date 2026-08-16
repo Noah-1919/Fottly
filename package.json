@@ -1,0 +1,23 @@
+{
+  "name": "media-mvp",
+  "version": "0.1.0",
+  "description": "Self-hosted image transformation service (open-source Cloudinary alternative)",
+  "main": "dist/server.js",
+  "type": "module",
+  "scripts": {
+    "dev": "tsx watch src/server.ts",
+    "build": "tsc",
+    "start": "node dist/server.js"
+  },
+  "dependencies": {
+    "@aws-sdk/client-s3": "^3.635.0",
+    "@fastify/cors": "^9.0.1",
+    "fastify": "^4.28.1",
+    "sharp": "^0.33.4"
+  },
+  "devDependencies": {
+    "@types/node": "^20.14.2",
+    "tsx": "^4.15.7",
+    "typescript": "^5.5.2"
+  }
+}

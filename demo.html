@@ -1,0 +1,552 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Demo — media-mvp</title>
+<style>
+  :root {
+    --bg: #0f1115;
+    --card: #1a1d24;
+    --border: #2b2f3a;
+    --accent: #6ee7b7;
+    --accent2: #60a5fa;
+    --text: #e5e7eb;
+    --muted: #9aa1ad;
+    --danger: #f87171;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    padding: 32px 24px 64px;
+  }
+  .wrap { max-width: 980px; margin: 0 auto; }
+  h1 { font-size: 22px; margin: 0 0 4px; }
+  .subtitle { color: var(--muted); font-size: 14px; margin: 0 0 28px; }
+  .panel {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 20px;
+    margin-bottom: 28px;
+  }
+  .panel h2 { font-size: 14px; text-transform: uppercase; letter-spacing: .05em; color: var(--muted); margin: 0 0 16px; }
+  .row { display: flex; gap: 12px; flex-wrap: wrap; margin-bottom: 12px; }
+  .field { flex: 1; min-width: 150px; display: flex; flex-direction: column; gap: 6px; }
+  .field.narrow { flex: 0 1 110px; min-width: 90px; }
+  label { font-size: 12px; color: var(--muted); }
+  input, select {
+    background: #0d0f13;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 10px 12px;
+    color: var(--text);
+    font-size: 14px;
+    font-family: inherit;
+    width: 100%;
+  }
+  input:focus, select:focus { outline: 2px solid var(--accent2); outline-offset: 1px; }
+  .checkbox-field { flex-direction: row; align-items: center; gap: 8px; padding-top: 18px; }
+  .checkbox-field input { width: auto; }
+  button {
+    background: var(--accent);
+    color: #0f1115;
+    border: none;
+    border-radius: 8px;
+    padding: 12px 20px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    margin-top: 4px;
+  }
+  button:hover { opacity: .9; }
+  button:disabled { opacity: .5; cursor: not-allowed; }
+  button.secondary {
+    background: #262a33;
+    color: var(--text);
+    border: 1px solid var(--border);
+  }
+  .hint { color: var(--muted); font-size: 12.5px; margin-top: 10px; line-height: 1.5; }
+  .hint code { background: #0d0f13; padding: 1px 5px; border-radius: 4px; }
+  .grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 16px;
+  }
+  .card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+  }
+  .card .thumb {
+    aspect-ratio: 1 / 1;
+    background:
+      linear-gradient(45deg, #22252c 25%, transparent 25%),
+      linear-gradient(-45deg, #22252c 25%, transparent 25%),
+      linear-gradient(45deg, transparent 75%, #22252c 75%),
+      linear-gradient(-45deg, transparent 75%, #22252c 75%);
+    background-size: 16px 16px;
+    background-position: 0 0, 0 8px, 8px -8px, -8px 0px;
+    background-color: #14161b;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    cursor: pointer;
+  }
+  .card img { max-width: 100%; max-height: 100%; object-fit: contain; }
+  .card .meta { padding: 12px 14px 14px; }
+  .card .title { font-size: 13.5px; font-weight: 600; margin-bottom: 4px; }
+  .card .url { font-size: 11px; color: var(--muted); word-break: break-all; font-family: ui-monospace, monospace; }
+  .status { font-size: 12px; margin-top: 8px; }
+  .status.ok { color: var(--accent); }
+  .status.err { color: var(--danger); }
+  .status.loading { color: var(--accent2); }
+  .actions { display: flex; gap: 6px; margin-top: 10px; }
+  .actions button {
+    flex: 1;
+    padding: 7px 8px;
+    font-size: 12px;
+    margin-top: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
+  }
+  .spinner {
+    width: 22px; height: 22px;
+    border: 2px solid #2b2f3a;
+    border-top-color: var(--accent2);
+    border-radius: 50%;
+    animation: spin .8s linear infinite;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  footer { color: var(--muted); font-size: 12px; text-align: center; margin-top: 40px; }
+
+  /* Lightbox */
+  #lightbox {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(10, 11, 14, .92);
+    z-index: 100;
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+    padding: 24px;
+  }
+  #lightbox.open { display: flex; }
+  #lightbox img {
+    max-width: min(90vw, 900px);
+    max-height: 70vh;
+    object-fit: contain;
+    border-radius: 8px;
+    background:
+      linear-gradient(45deg, #22252c 25%, transparent 25%),
+      linear-gradient(-45deg, #22252c 25%, transparent 25%),
+      linear-gradient(45deg, transparent 75%, #22252c 75%),
+      linear-gradient(-45deg, transparent 75%, #22252c 75%);
+    background-size: 16px 16px;
+    background-position: 0 0, 0 8px, 8px -8px, -8px 0px;
+    background-color: #14161b;
+  }
+  #lightbox .lb-title { color: var(--text); font-size: 14px; margin-top: 16px; }
+  #lightbox .lb-actions { display: flex; gap: 10px; margin-top: 14px; }
+  #lightbox .lb-actions button { margin-top: 0; padding: 10px 18px; }
+  #lightbox .lb-close {
+    position: absolute;
+    top: 20px;
+    right: 24px;
+    background: none;
+    border: none;
+    color: var(--muted);
+    font-size: 28px;
+    cursor: pointer;
+    padding: 0;
+  }
+  #lightbox .lb-close:hover { color: var(--text); }
+  #toast {
+    position: fixed;
+    bottom: 24px;
+    left: 50%;
+    transform: translateX(-50%) translateY(20px);
+    background: var(--accent);
+    color: #0f1115;
+    padding: 10px 18px;
+    border-radius: 8px;
+    font-size: 13px;
+    font-weight: 600;
+    opacity: 0;
+    transition: opacity .2s, transform .2s;
+    pointer-events: none;
+    z-index: 200;
+  }
+  #toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>Demo — media-mvp</h1>
+  <p class="subtitle">This is how a client's website would see its images served through your API. Each card is a real request to your server.</p>
+
+  <div class="panel">
+    <h2>Configuration</h2>
+    <div class="row">
+      <div class="field">
+        <label for="serverUrl">Server URL</label>
+        <input id="serverUrl" value="http://localhost:3000">
+      </div>
+      <div class="field">
+        <label for="apiKey">API key (only needed for /files, /t/ delivery is already public)</label>
+        <input id="apiKey" value="dev-secret-key">
+      </div>
+    </div>
+    <div class="row">
+      <div class="field">
+        <label for="filename">Filename (already uploaded to the bucket)</label>
+        <input id="filename" placeholder="your-image.jpg">
+      </div>
+      <div class="field">
+        <label for="watermark">Watermark file (optional, already uploaded)</label>
+        <input id="watermark" placeholder="logo.png">
+      </div>
+    </div>
+    <button id="loadBtn">Load quick examples</button>
+    <p class="hint">
+      Requires <code>docker compose up</code> to be running and the file to already exist in the bucket
+      (uploaded earlier via the MinIO console). The quick examples show: original, 300x300 crop,
+      fit without cropping, background removed, and watermark if you fill in that field.
+    </p>
+  </div>
+
+  <div class="panel">
+    <h2>Custom transformation</h2>
+    <div class="row">
+      <div class="field narrow">
+        <label for="cWidth">Width (w)</label>
+        <input id="cWidth" type="number" min="1" placeholder="800">
+      </div>
+      <div class="field narrow">
+        <label for="cHeight">Height (h)</label>
+        <input id="cHeight" type="number" min="1" placeholder="600">
+      </div>
+      <div class="field narrow">
+        <label for="cFormat">Format (f)</label>
+        <select id="cFormat">
+          <option value="">— default (webp) —</option>
+          <option value="webp">webp</option>
+          <option value="avif">avif</option>
+          <option value="jpeg">jpeg</option>
+          <option value="png">png</option>
+        </select>
+      </div>
+      <div class="field narrow">
+        <label for="cQuality">Quality (q)</label>
+        <input id="cQuality" type="number" min="1" max="100" placeholder="80">
+      </div>
+      <div class="field narrow">
+        <label for="cCrop">Crop (c)</label>
+        <select id="cCrop">
+          <option value="">— fill (default) —</option>
+          <option value="fill">fill (crops)</option>
+          <option value="fit">fit (no cropping)</option>
+        </select>
+      </div>
+    </div>
+    <div class="row">
+      <div class="field narrow checkbox-field">
+        <input id="cBgRemove" type="checkbox">
+        <label for="cBgRemove">bg_remove (remove background)</label>
+      </div>
+      <div class="field">
+        <label for="cWatermark">Watermark (wm), optional — leave empty to skip</label>
+        <input id="cWatermark" placeholder="logo.png">
+      </div>
+      <div class="field narrow">
+        <label for="cGravity">Watermark position (wg)</label>
+        <select id="cGravity">
+          <option value="">northwest (default)</option>
+          <option value="north">north</option>
+          <option value="northeast">northeast</option>
+          <option value="east">east</option>
+          <option value="southeast">southeast</option>
+          <option value="south">south</option>
+          <option value="southwest">southwest</option>
+          <option value="west">west</option>
+          <option value="center">center</option>
+        </select>
+      </div>
+    </div>
+    <div class="row">
+      <div class="field narrow">
+        <label for="cWmScale">Watermark size % (ws)</label>
+        <input id="cWmScale" type="number" min="1" max="100" placeholder="20">
+      </div>
+      <div class="field narrow">
+        <label for="cWmOpacity">Watermark opacity % (wo)</label>
+        <input id="cWmOpacity" type="number" min="1" max="100" placeholder="60">
+      </div>
+    </div>
+    <button id="customBtn" class="secondary">Add custom transformation</button>
+    <p class="hint" id="customPreview">Fill in whichever fields you want to combine and click the button — a new card is added below with exactly that URL.</p>
+  </div>
+
+  <div id="grid" class="grid"></div>
+
+  <footer>media-mvp · local demo, nothing is sent anywhere external</footer>
+</div>
+
+<div id="lightbox">
+  <button class="lb-close" id="lbClose">&times;</button>
+  <img id="lbImg" alt="">
+  <div class="lb-title" id="lbTitle"></div>
+  <div class="lb-actions">
+    <button id="lbDownload">Download</button>
+    <button class="secondary" id="lbCopy">Copy image</button>
+  </div>
+</div>
+
+<div id="toast"></div>
+
+<script>
+const loadBtn = document.getElementById("loadBtn");
+const customBtn = document.getElementById("customBtn");
+const grid = document.getElementById("grid");
+const lightbox = document.getElementById("lightbox");
+const lbImg = document.getElementById("lbImg");
+const lbTitle = document.getElementById("lbTitle");
+const lbClose = document.getElementById("lbClose");
+const lbDownload = document.getElementById("lbDownload");
+const lbCopy = document.getElementById("lbCopy");
+const toast = document.getElementById("toast");
+
+let activeCardData = null; // { blob, title, path }
+
+function showToast(msg) {
+  toast.textContent = msg;
+  toast.classList.add("show");
+  clearTimeout(showToast._t);
+  showToast._t = setTimeout(() => toast.classList.remove("show"), 2200);
+}
+
+function extFromContentType(ct) {
+  if (!ct) return "bin";
+  if (ct.includes("webp")) return "webp";
+  if (ct.includes("avif")) return "avif";
+  if (ct.includes("png")) return "png";
+  if (ct.includes("jpeg") || ct.includes("jpg")) return "jpg";
+  return ct.split("/").pop().split("+")[0] || "bin";
+}
+
+async function blobToPng(blob) {
+  const bitmap = await createImageBitmap(blob);
+  const canvas = document.createElement("canvas");
+  canvas.width = bitmap.width;
+  canvas.height = bitmap.height;
+  const ctx = canvas.getContext("2d");
+  ctx.drawImage(bitmap, 0, 0);
+  return new Promise((resolve) => canvas.toBlob(resolve, "image/png"));
+}
+
+function openLightbox(data) {
+  activeCardData = data;
+  lbImg.src = URL.createObjectURL(data.blob);
+  lbTitle.textContent = data.title;
+  lightbox.classList.add("open");
+}
+
+function closeLightbox() {
+  lightbox.classList.remove("open");
+  activeCardData = null;
+}
+
+lbClose.addEventListener("click", closeLightbox);
+lightbox.addEventListener("click", (e) => {
+  if (e.target === lightbox) closeLightbox();
+});
+
+lbDownload.addEventListener("click", () => {
+  if (!activeCardData) return;
+  downloadBlob(activeCardData.blob, activeCardData.title);
+});
+
+lbCopy.addEventListener("click", async () => {
+  if (!activeCardData) return;
+  await copyBlobToClipboard(activeCardData.blob);
+});
+
+function downloadBlob(blob, title) {
+  const ext = extFromContentType(blob.type);
+  const safeName = title.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "");
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(blob);
+  a.download = `${safeName || "image"}.${ext}`;
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  showToast("Download started");
+}
+
+async function copyBlobToClipboard(blob) {
+  try {
+    const pngBlob = await blobToPng(blob);
+    await navigator.clipboard.write([new ClipboardItem({ "image/png": pngBlob })]);
+    showToast("Image copied to clipboard");
+  } catch (err) {
+    showToast("Your browser doesn't allow copying images (try downloading instead)");
+  }
+}
+
+function buildPresetCards(filename, watermark) {
+  const cards = [
+    { title: "Original (served by your API)", transforms: "q_100" },
+    { title: "300x300 cropped thumbnail (c_fill)", transforms: "w_300,h_300,c_fill,f_webp" },
+    { title: "300x300 fit without cropping (c_fit)", transforms: "w_300,h_300,c_fit,f_webp" },
+    { title: "Background removed with AI (bg_remove)", transforms: "w_400,bg_remove,f_webp" },
+  ];
+  if (watermark) {
+    cards.push({ title: "With watermark", transforms: `w_400,wm_${watermark},f_webp` });
+  }
+  return cards.map((c) => ({ ...c, path: `/t/${c.transforms}/${filename}` }));
+}
+
+function buildCustomCard(filename) {
+  const parts = [];
+  const w = document.getElementById("cWidth").value.trim();
+  const h = document.getElementById("cHeight").value.trim();
+  const f = document.getElementById("cFormat").value;
+  const q = document.getElementById("cQuality").value.trim();
+  const c = document.getElementById("cCrop").value;
+  const bg = document.getElementById("cBgRemove").checked;
+  const wm = document.getElementById("cWatermark").value.trim();
+  const wg = document.getElementById("cGravity").value;
+  const ws = document.getElementById("cWmScale").value.trim();
+  const wo = document.getElementById("cWmOpacity").value.trim();
+
+  if (w) parts.push(`w_${w}`);
+  if (h) parts.push(`h_${h}`);
+  if (c) parts.push(`c_${c}`);
+  if (bg) parts.push("bg_remove");
+  if (wm) parts.push(`wm_${wm}`);
+  if (wg) parts.push(`wg_${wg}`);
+  if (wm && ws) parts.push(`ws_${ws}`);
+  if (wm && wo) parts.push(`wo_${wo}`);
+  if (f) parts.push(`f_${f}`);
+  if (q) parts.push(`q_${q}`);
+
+  if (parts.length === 0) {
+    alert("Fill in at least one parameter for the custom transformation.");
+    return null;
+  }
+
+  const transforms = parts.join(",");
+  return {
+    title: `Custom: ${transforms}`,
+    transforms,
+    path: `/t/${transforms}/${filename}`,
+  };
+}
+
+function makeCard(card) {
+  const el = document.createElement("div");
+  el.className = "card";
+  el.innerHTML = `
+    <div class="thumb"><div class="spinner"></div></div>
+    <div class="meta">
+      <div class="title">${card.title}</div>
+      <div class="url">${card.path}</div>
+      <div class="status loading">Loading…</div>
+      <div class="actions" style="display:none;">
+        <button class="secondary act-view">View large</button>
+        <button class="secondary act-download">Download</button>
+        <button class="secondary act-copy">Copy</button>
+      </div>
+    </div>
+  `;
+  return el;
+}
+
+async function loadCard(el, card, serverUrl, apiKey) {
+  const thumb = el.querySelector(".thumb");
+  const status = el.querySelector(".status");
+  const actions = el.querySelector(".actions");
+  try {
+    const headers = {};
+    if (apiKey) headers.Authorization = `Bearer ${apiKey}`;
+    const res = await fetch(serverUrl.replace(/\/$/, "") + card.path, { headers });
+    if (!res.ok) {
+      const body = await res.json().catch(() => ({}));
+      throw new Error(body.error || `HTTP ${res.status}`);
+    }
+    const blob = await res.blob();
+    const url = URL.createObjectURL(blob);
+    thumb.innerHTML = `<img src="${url}" alt="${card.title}">`;
+    status.textContent = `OK · ${(blob.size / 1024).toFixed(1)} KB · ${blob.type}`;
+    status.className = "status ok";
+    actions.style.display = "flex";
+
+    const data = { blob, title: card.title, path: card.path };
+    thumb.addEventListener("click", () => openLightbox(data));
+    el.querySelector(".act-view").addEventListener("click", () => openLightbox(data));
+    el.querySelector(".act-download").addEventListener("click", () => downloadBlob(blob, card.title));
+    el.querySelector(".act-copy").addEventListener("click", () => copyBlobToClipboard(blob));
+  } catch (err) {
+    thumb.innerHTML = `<span style="color:#f87171;font-size:13px;padding:0 12px;text-align:center;">✕</span>`;
+    status.textContent = err.message || "Connection error (is docker compose running?)";
+    status.className = "status err";
+  }
+}
+
+function currentConfig() {
+  return {
+    serverUrl: document.getElementById("serverUrl").value.trim(),
+    apiKey: document.getElementById("apiKey").value.trim(),
+    filename: document.getElementById("filename").value.trim(),
+  };
+}
+
+loadBtn.addEventListener("click", async () => {
+  const { serverUrl, apiKey, filename } = currentConfig();
+  const watermark = document.getElementById("watermark").value.trim();
+
+  if (!filename) {
+    alert("Enter the name of a file you've already uploaded to the bucket.");
+    return;
+  }
+
+  grid.innerHTML = "";
+  const cards = buildPresetCards(filename, watermark);
+  const els = cards.map((card) => {
+    const el = makeCard(card);
+    grid.appendChild(el);
+    return el;
+  });
+
+  loadBtn.disabled = true;
+  await Promise.all(cards.map((card, i) => loadCard(els[i], card, serverUrl, apiKey)));
+  loadBtn.disabled = false;
+});
+
+customBtn.addEventListener("click", async () => {
+  const { serverUrl, apiKey, filename } = currentConfig();
+  if (!filename) {
+    alert("Enter the name of a file you've already uploaded to the bucket.");
+    return;
+  }
+  const card = buildCustomCard(filename);
+  if (!card) return;
+
+  const el = makeCard(card);
+  grid.prepend(el);
+  customBtn.disabled = true;
+  await loadCard(el, card, serverUrl, apiKey);
+  customBtn.disabled = false;
+});
+</script>
+</body>
+</html>
