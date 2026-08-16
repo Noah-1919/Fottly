@@ -1,5 +1,6 @@
 import Fastify from "fastify";
 import cors from "@fastify/cors";
+import rateLimit from "@fastify/rate-limit";
 import { createHash } from "node:crypto";
 import { parseTransformString, applyTransform, isAnimated } from "./transform.js";
 import {
@@ -39,6 +40,10 @@ function guessContentType(filename: string): string {
   return (ext && EXTENSION_CONTENT_TYPES[ext]) || "application/octet-stream";
 }
 
+const MAX_UPLOAD_SIZE_MB = Number(process.env.MAX_UPLOAD_SIZE_MB ?? 25);
+const RATE_LIMIT_MAX = Number(process.env.RATE_LIMIT_MAX ?? 100);
+const RATE_LIMIT_WINDOW_MS = Number(process.env.RATE_LIMIT_WINDOW_MS ?? 60_000);
+
 function cacheKeyFor(filename: string, transforms: string): string {
   const hash = createHash("sha1").update(transforms).digest("hex");
   return `${CACHE_PREFIX}${encodeURIComponent(filename)}/${hash}`;
@@ -50,10 +55,27 @@ async function deleteCacheFor(filename: string): Promise<void> {
   await Promise.all(keys.map((key) => deleteObject(key)));
 }
 
-const fastify = Fastify({ logger: true });
+const fastify = Fastify({
+  logger: true,
+  bodyLimit: MAX_UPLOAD_SIZE_MB * 1024 * 1024,
+});
 
 // CORS open to any origin: for local development/demo purposes only.
-fastify.register(cors, { origin: "*" });
+await fastify.register(cors, { origin: "*" });
+
+// Global rate limit, keyed by IP by default. Must be awaited: otherwise the
+// plugin's hooks aren't fully attached by the time the server starts
+// accepting connections, and requests silently bypass the limit.
+await fastify.register(rateLimit, {
+  max: RATE_LIMIT_MAX,
+  timeWindow: RATE_LIMIT_WINDOW_MS,
+});
+
+// Accepts raw file uploads with any Content-Type (falls back to the
+// default JSON parser for "application/json", used by PUT /files/*).
+fastify.addContentTypeParser("*", { parseAs: "buffer" }, (_request, payload, done) => {
+  done(null, payload);
+});
 
 fastify.addHook("onRequest", requireApiKey);
 
@@ -130,6 +152,28 @@ fastify.get("/t/:transforms/*", async (request, reply) => {
   await putObject(cacheObjectKey, buffer, contentType);
 
   return reply.type(contentType).send(buffer);
+});
+
+// Uploads a file as a raw binary body. The Content-Type header is stored
+// as-is; if a file with the same name already exists, its derived cache is
+// cleared so stale transforms of the old content aren't served afterwards.
+fastify.post("/files/*", async (request, reply) => {
+  const filename = (request.params as Record<string, string>)["*"];
+  if (!filename) {
+    return reply.status(400).send({ error: "Missing filename" });
+  }
+
+  const body = request.body;
+  if (!Buffer.isBuffer(body) || body.length === 0) {
+    return reply.status(400).send({ error: "Missing file body" });
+  }
+
+  const contentType = (request.headers["content-type"] ?? "application/octet-stream").split(";")[0].trim();
+
+  await putObject(filename, body, contentType);
+  await deleteCacheFor(filename);
+
+  return reply.status(201).send({ uploaded: filename });
 });
 
 // Deletes a file from the bucket along with all its derived cache entries.

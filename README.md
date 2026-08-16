@@ -20,8 +20,18 @@ variables.
 | `S3_SECRET_ACCESS_KEY` | Secret key. | `minioadmin` |
 | `S3_FORCE_PATH_STYLE` | `true` for MinIO/backends without virtual-hosted style. `false` on real AWS S3. | `true` |
 | `API_KEY` | Key required for authentication (see the Authentication section below). | `dev-secret-key` |
+| `MAX_UPLOAD_SIZE_MB` | Maximum request body size, in megabytes (applies to file uploads). | `25` |
+| `RATE_LIMIT_MAX` | Maximum requests per IP within the time window (see Rate limiting below). | `100` |
+| `RATE_LIMIT_WINDOW_MS` | Rate limit time window, in milliseconds. | `60000` |
 
 There's a `.env.example` with these values (the same ones used by `docker-compose.yml`).
+
+## Rate limiting
+
+All routes are globally rate-limited per IP (`RATE_LIMIT_MAX` requests per
+`RATE_LIMIT_WINDOW_MS` milliseconds, 100 req/min by default). Exceeding it
+returns `429` with `X-RateLimit-*` headers indicating the limit, remaining
+requests, and reset time.
 
 ## Authentication
 
@@ -34,7 +44,7 @@ it's a single shared key.
 | --- | --- |
 | `GET /health` | Public |
 | `GET /t/...` (image delivery/transformation) | **Public** |
-| `DELETE /files/...`, `PUT /files/...` (delete/rename) | Requires `Authorization` |
+| `POST /files/...`, `DELETE /files/...`, `PUT /files/...` (upload/delete/rename) | Requires `Authorization` |
 
 **Why `/t/...` is public:** these images are meant to be used in
 `<img src="...">` on real web pages, and browsers **cannot** send
@@ -61,7 +71,7 @@ This starts:
 
 - `minio` — S3-compatible storage, with a web console at http://localhost:9001 (user/password: `minioadmin` / `minioadmin`)
 - `createbuckets` — automatically creates the `media-mvp` bucket on startup
-- `rembg` — internal background-removal service (not exposed to the host)
+- `rembg` — internal background-removal service (not exposed to the host), with a real healthcheck (`curl -f http://localhost:7000/`) — `app` waits for it to report healthy before starting, not just started
 - `app` — the transformation service at http://localhost:3000, already configured to talk to MinIO and Rembg
 
 ### Upload a test image and check the transformation
@@ -247,6 +257,17 @@ as-is, to avoid losing the animation.
 
 ### File management
 
+Upload a file (raw binary body, `Content-Type` set to the file's own type).
+If a file with the same name already exists, its old cache is cleared so
+stale transforms of the previous content aren't served afterwards:
+
+```bash
+curl -X POST -H "Authorization: Bearer dev-secret-key" \
+  -H "Content-Type: image/jpeg" \
+  --data-binary @your-image.jpg \
+  "http://localhost:3000/files/your-image.jpg"
+```
+
 Delete a file (and all its derived cache entries):
 
 ```bash
@@ -277,7 +298,8 @@ deleting or renaming a file can wipe all of its derived cache in one go
 - [x] Phase 1: S3-compatible storage (AWS S3 / Cloudflare R2 / MinIO) — tested with MinIO via Docker Compose
 - [x] Phase 2: API key authentication — `Authorization: Bearer <API_KEY>` header on `/files/...` (management); `/health` and `/t/...` (delivery) are public
 - [x] Phase 3: AI background removal (Rembg) — `bg_remove` URL parameter, internal service via Docker Compose
-- [x] Phase 4: crop mode (`c_fill`/`c_fit`), file management (delete/rename with cache invalidation), watermark (`wm_`), passthrough for unsupported/animated formats
+- [x] Phase 4: crop mode (`c_fill`/`c_fit`), file management (upload/delete/rename with cache invalidation), watermark (`wm_`), passthrough for unsupported/animated formats
+- [x] Phase 5: stability hardening — file upload endpoint, request size limit (`MAX_UPLOAD_SIZE_MB`), per-IP rate limiting, real `rembg` healthcheck
 
 ## License
 
