@@ -2,9 +2,12 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>Demo — media-mvp</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Demo — Fottly</title>
+<link rel="icon" type="image/png" href="assets/favicon.png">
 <style>
   :root {
+    /* Brand palette */
     --bg: #0f1115;
     --card: #1a1d24;
     --border: #2b2f3a;
@@ -13,76 +16,445 @@
     --text: #e5e7eb;
     --muted: #9aa1ad;
     --danger: #f87171;
+
+    /* Derived surfaces */
+    --sunken: #0d0f13;
+    --raised: #222630;
+    --border-soft: #21252e;
+
+    /* 4px spacing scale */
+    --s1: 4px;  --s2: 8px;  --s3: 12px; --s4: 16px;
+    --s6: 24px; --s8: 32px; --s12: 48px; --s16: 64px;
+
+    /* Radii */
+    --r-control: 8px;
+    --r-card: 12px;
+
+    /* Control heights */
+    --h-control: 38px;
+    --h-control-sm: 30px;
+
+    --mono: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace;
+    --ease: cubic-bezier(.175, .885, .32, 1.1);
   }
+
   * { box-sizing: border-box; }
+
   body {
     margin: 0;
-    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", sans-serif;
     background: var(--bg);
     color: var(--text);
-    padding: 32px 24px 64px;
+    font-size: 14px;
+    line-height: 1.5;
+    -webkit-font-smoothing: antialiased;
+    padding: var(--s8) var(--s6) var(--s16);
   }
-  .wrap { max-width: 980px; margin: 0 auto; }
-  h1 { font-size: 22px; margin: 0 0 4px; }
-  .subtitle { color: var(--muted); font-size: 14px; margin: 0 0 28px; }
+
+  .wrap { max-width: 1080px; margin: 0 auto; }
+
+  /* ---------- Header ---------- */
+  header.masthead {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: var(--s6);
+    padding-bottom: var(--s6);
+    margin-bottom: var(--s8);
+    border-bottom: 1px solid var(--border-soft);
+  }
+  /* assets/logo.png is a 2000x2000 file whose wordmark occupies only
+     x 719-1307, y 951-1100. The wrapper crops to exactly that region so
+     the mark reads at a proper size instead of floating in a large tile. */
+  .logo {
+    display: block;
+    width: 141px;
+    height: 36px;
+    overflow: hidden;
+    position: relative;
+    flex: none;
+  }
+  .logo img {
+    position: absolute;
+    width: 480px;
+    height: auto;
+    left: -172.6px;
+    top: -228.2px;
+  }
+  .masthead .tagline {
+    color: var(--muted);
+    font-size: 13.5px;
+    margin: var(--s3) 0 0;
+    max-width: 60ch;
+  }
+  .badge {
+    flex: none;
+    display: inline-flex;
+    align-items: center;
+    gap: var(--s2);
+    font-size: 11.5px;
+    font-weight: 500;
+    color: var(--muted);
+    background: var(--sunken);
+    border: 1px solid var(--border);
+    border-radius: 999px;
+    padding: 5px 12px;
+    white-space: nowrap;
+  }
+  .badge .dot {
+    width: 6px; height: 6px; border-radius: 50%;
+    background: var(--accent);
+  }
+
+  /* ---------- Panels ---------- */
   .panel {
     background: var(--card);
     border: 1px solid var(--border);
-    border-radius: 12px;
-    padding: 20px;
-    margin-bottom: 28px;
+    border-radius: var(--r-card);
+    padding: var(--s6);
+    margin-bottom: var(--s6);
   }
-  .panel h2 { font-size: 14px; text-transform: uppercase; letter-spacing: .05em; color: var(--muted); margin: 0 0 16px; }
-  .row { display: flex; gap: 12px; flex-wrap: wrap; margin-bottom: 12px; }
-  .field { flex: 1; min-width: 150px; display: flex; flex-direction: column; gap: 6px; }
-  .field.narrow { flex: 0 1 110px; min-width: 90px; }
-  label { font-size: 12px; color: var(--muted); }
-  input, select {
-    background: #0d0f13;
-    border: 1px solid var(--border);
-    border-radius: 8px;
-    padding: 10px 12px;
+  .panel-head {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: var(--s4);
+    margin-bottom: var(--s4);
+  }
+  .panel h2 {
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: .09em;
+    color: var(--muted);
+    margin: 0;
+  }
+  .panel-note { font-size: 12px; color: var(--muted); margin: 0; }
+
+  .group + .group { margin-top: var(--s6); }
+  .group-label {
+    font-size: 12px;
+    font-weight: 600;
     color: var(--text);
-    font-size: 14px;
+    margin: 0 0 var(--s3);
+    letter-spacing: -.01em;
+  }
+
+  .row {
+    display: flex;
+    gap: var(--s4);
+    flex-wrap: wrap;
+    align-items: flex-end;
+  }
+  /* Used where controls of different heights sit side by side (e.g. the
+     gravity grid next to sliders) so their labels line up along the top. */
+  .row.align-start { align-items: flex-start; }
+  .row + .row { margin-top: var(--s4); }
+  .field { flex: 1 1 220px; min-width: 180px; display: flex; flex-direction: column; gap: 6px; }
+  .field.narrow { flex: 0 1 160px; min-width: 140px; }
+
+  label, .label {
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--muted);
+    letter-spacing: -.005em;
+  }
+  .label .hint-inline { color: #6b7280; font-weight: 400; }
+
+  input[type="text"], input:not([type]), select {
+    background: var(--sunken);
+    border: 1px solid var(--border);
+    border-radius: var(--r-control);
+    height: var(--h-control);
+    padding: 0 12px;
+    color: var(--text);
+    font-size: 13.5px;
     font-family: inherit;
     width: 100%;
+    transition: border-color .15s, box-shadow .15s;
   }
-  input:focus, select:focus { outline: 2px solid var(--accent2); outline-offset: 1px; }
-  .checkbox-field { flex-direction: row; align-items: center; gap: 8px; padding-top: 18px; }
-  .checkbox-field input { width: auto; }
+  input::placeholder { color: #5c6472; }
+  input:focus, select:focus {
+    outline: none;
+    border-color: var(--accent2);
+    box-shadow: 0 0 0 3px rgba(96, 165, 250, .18);
+  }
+  input.mono { font-family: var(--mono); font-size: 12.5px; }
+
+  /* ---------- Buttons ---------- */
   button {
-    background: var(--accent);
-    color: #0f1115;
-    border: none;
-    border-radius: 8px;
-    padding: 12px 20px;
-    font-size: 14px;
-    font-weight: 600;
+    font-family: inherit;
+    font-size: 13.5px;
+    font-weight: 500;
+    border-radius: var(--r-control);
+    border: 1px solid transparent;
     cursor: pointer;
-    margin-top: 4px;
+    height: var(--h-control);
+    padding: 0 18px;
+    transition: background .15s, border-color .15s, opacity .15s;
   }
-  button:hover { opacity: .9; }
-  button:disabled { opacity: .5; cursor: not-allowed; }
+  button.primary { background: var(--accent); color: #0d1117; font-weight: 600; }
+  button.primary:hover:not(:disabled) { background: #8af0c8; }
   button.secondary {
-    background: #262a33;
+    background: var(--raised);
     color: var(--text);
-    border: 1px solid var(--border);
+    border-color: var(--border);
   }
-  .hint { color: var(--muted); font-size: 12.5px; margin-top: 10px; line-height: 1.5; }
-  .hint code { background: #0d0f13; padding: 1px 5px; border-radius: 4px; }
+  button.secondary:hover:not(:disabled) { background: #2a2f3a; border-color: #3a4150; }
+  button:disabled { opacity: .45; cursor: not-allowed; }
+  button:focus-visible {
+    outline: none;
+    box-shadow: 0 0 0 3px rgba(96, 165, 250, .35);
+  }
+
+  .hint { color: var(--muted); font-size: 12.5px; margin: var(--s3) 0 0; line-height: 1.6; }
+  .hint code {
+    background: var(--sunken);
+    border: 1px solid var(--border-soft);
+    padding: 1px 6px;
+    border-radius: 5px;
+    font-family: var(--mono);
+    font-size: 11.5px;
+  }
+
+  /* ---------- Sliders ---------- */
+  .slider-field { display: flex; flex-direction: column; gap: 8px; }
+  .slider-head {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: var(--s2);
+  }
+  .slider-value {
+    font-family: var(--mono);
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--accent);
+    background: rgba(110, 231, 183, .08);
+    border: 1px solid rgba(110, 231, 183, .18);
+    border-radius: 5px;
+    padding: 1px 7px;
+    min-width: 62px;
+    text-align: center;
+    transition: color .15s, background .15s, border-color .15s;
+  }
+  .slider-value.is-auto {
+    color: var(--muted);
+    background: var(--sunken);
+    border-color: var(--border);
+  }
+
+  input[type="range"] {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 100%;
+    height: 20px;
+    background: transparent;
+    padding: 0;
+    border: none;
+    cursor: pointer;
+  }
+  input[type="range"]:focus { outline: none; }
+  /* WebKit */
+  input[type="range"]::-webkit-slider-runnable-track {
+    height: 4px;
+    border-radius: 999px;
+    background: var(--border);
+  }
+  input[type="range"]::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 16px; height: 16px;
+    margin-top: -6px;
+    border-radius: 50%;
+    background: var(--text);
+    border: 1px solid rgba(0,0,0,.3);
+    box-shadow: 0 1px 3px rgba(0,0,0,.4);
+    transition: background .15s, transform .1s var(--ease);
+  }
+  input[type="range"]:hover::-webkit-slider-thumb { background: #fff; }
+  input[type="range"]:active::-webkit-slider-thumb { transform: scale(1.12); background: var(--accent); }
+  input[type="range"]:focus-visible::-webkit-slider-thumb { box-shadow: 0 0 0 4px rgba(96,165,250,.3); }
+  /* Firefox */
+  input[type="range"]::-moz-range-track {
+    height: 4px; border-radius: 999px; background: var(--border);
+  }
+  input[type="range"]::-moz-range-thumb {
+    width: 14px; height: 14px;
+    border-radius: 50%;
+    background: var(--text);
+    border: 1px solid rgba(0,0,0,.3);
+    box-shadow: 0 1px 3px rgba(0,0,0,.4);
+  }
+  input[type="range"]:active::-moz-range-thumb { background: var(--accent); }
+
+  /* ---------- Segmented control ---------- */
+  /* Sized to its content rather than stretching to fill the row: a
+     segmented control spread across 700px reads as disconnected buttons. */
+  .segmented {
+    display: inline-flex;
+    background: var(--sunken);
+    border: 1px solid var(--border);
+    border-radius: var(--r-control);
+    padding: 3px;
+    gap: 2px;
+    width: max-content;
+    max-width: 100%;
+  }
+  .segmented button {
+    flex: 0 0 auto;
+    min-width: 58px;
+    height: var(--h-control-sm);
+    padding: 0 14px;
+    font-size: 12.5px;
+    font-weight: 500;
+    border-radius: 6px;
+    background: transparent;
+    color: var(--muted);
+    border: none;
+    white-space: nowrap;
+  }
+  .segmented button:hover:not(.is-active) { color: var(--text); background: rgba(255,255,255,.04); }
+  .segmented button.is-active {
+    background: var(--raised);
+    color: var(--text);
+    font-weight: 600;
+    box-shadow: 0 1px 2px rgba(0,0,0,.3);
+  }
+
+  /* ---------- Toggle ---------- */
+  .toggle-field {
+    display: flex;
+    align-items: center;
+    gap: var(--s3);
+    background: var(--sunken);
+    border: 1px solid var(--border);
+    border-radius: var(--r-control);
+    height: var(--h-control);
+    padding: 0 14px;
+  }
+  .toggle {
+    position: relative;
+    width: 34px; height: 20px;
+    flex: none;
+    border-radius: 999px;
+    background: var(--border);
+    border: none;
+    padding: 0;
+    cursor: pointer;
+    transition: background .18s var(--ease);
+  }
+  .toggle::after {
+    content: "";
+    position: absolute;
+    top: 3px; left: 3px;
+    width: 14px; height: 14px;
+    border-radius: 50%;
+    background: var(--text);
+    transition: transform .18s var(--ease), background .18s;
+  }
+  .toggle.is-on { background: var(--accent); }
+  .toggle.is-on::after { transform: translateX(14px); background: #0d1117; }
+  .toggle-field .toggle-label { font-size: 13px; color: var(--text); font-weight: 500; cursor: pointer; }
+
+  /* ---------- Gravity grid ---------- */
+  .gravity-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 34px);
+    grid-template-rows: repeat(3, 26px);
+    gap: 3px;
+    background: var(--sunken);
+    border: 1px solid var(--border);
+    border-radius: var(--r-control);
+    padding: 4px;
+    width: max-content;
+  }
+  .gravity-grid button {
+    height: auto;
+    padding: 0;
+    border-radius: 4px;
+    background: var(--raised);
+    border: 1px solid transparent;
+    cursor: pointer;
+    position: relative;
+  }
+  .gravity-grid button::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    margin: auto;
+    width: 5px; height: 5px;
+    border-radius: 1px;
+    background: #4b5261;
+    transition: background .15s;
+  }
+  .gravity-grid button:hover::after { background: var(--muted); }
+  .gravity-grid button.is-active { background: rgba(110, 231, 183, .14); border-color: rgba(110, 231, 183, .5); }
+  .gravity-grid button.is-active::after { background: var(--accent); width: 7px; height: 7px; }
+
+  /* Watermark sub-controls dim when no watermark file is set */
+  .wm-dependent { transition: opacity .18s; }
+  .wm-dependent.is-disabled { opacity: .4; pointer-events: none; }
+
+  /* ---------- URL preview ---------- */
+  .url-preview {
+    margin-top: var(--s6);
+    background: var(--sunken);
+    border: 1px solid var(--border);
+    border-radius: var(--r-control);
+    padding: var(--s3) var(--s4);
+    display: flex;
+    align-items: center;
+    gap: var(--s3);
+  }
+  .url-preview .url-text {
+    font-family: var(--mono);
+    font-size: 12.5px;
+    color: var(--text);
+    word-break: break-all;
+    flex: 1;
+    line-height: 1.6;
+  }
+  .url-preview .url-text .u-dim { color: #6b7280; }
+  .url-preview .url-text .u-accent { color: var(--accent); }
+  .url-preview button { height: var(--h-control-sm); padding: 0 12px; font-size: 12px; flex: none; }
+
+  .actions-bar { display: flex; gap: var(--s3); align-items: center; margin-top: var(--s4); flex-wrap: wrap; }
+
+  /* ---------- Results ---------- */
+  .results-head {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    margin: var(--s8) 0 var(--s4);
+  }
+  .results-head h2 {
+    font-size: 11px; font-weight: 600; text-transform: uppercase;
+    letter-spacing: .09em; color: var(--muted); margin: 0;
+  }
   .grid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-    gap: 16px;
+    grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+    gap: var(--s4);
+  }
+  .empty-state {
+    border: 1px dashed var(--border);
+    border-radius: var(--r-card);
+    padding: var(--s12) var(--s6);
+    text-align: center;
+    color: var(--muted);
+    font-size: 13px;
   }
   .card {
     background: var(--card);
     border: 1px solid var(--border);
-    border-radius: 12px;
+    border-radius: var(--r-card);
     overflow: hidden;
     display: flex;
     flex-direction: column;
+    transition: border-color .15s, transform .15s var(--ease);
   }
+  .card:hover { border-color: #39404e; }
   .card .thumb {
     aspect-ratio: 1 / 1;
     background:
@@ -100,52 +472,57 @@
     cursor: pointer;
   }
   .card img { max-width: 100%; max-height: 100%; object-fit: contain; }
-  .card .meta { padding: 12px 14px 14px; }
-  .card .title { font-size: 13.5px; font-weight: 600; margin-bottom: 4px; }
-  .card .url { font-size: 11px; color: var(--muted); word-break: break-all; font-family: ui-monospace, monospace; }
-  .status { font-size: 12px; margin-top: 8px; }
+  .card .meta { padding: var(--s3) var(--s4) var(--s4); border-top: 1px solid var(--border-soft); }
+  .card .title {
+    font-size: 13px; font-weight: 600; margin-bottom: 5px;
+    letter-spacing: -.01em; line-height: 1.35;
+  }
+  .card .url {
+    font-size: 11px; color: var(--muted); word-break: break-all;
+    font-family: var(--mono); line-height: 1.5;
+  }
+  .status { font-size: 11.5px; margin-top: var(--s2); font-family: var(--mono); }
   .status.ok { color: var(--accent); }
-  .status.err { color: var(--danger); }
+  .status.err { color: var(--danger); font-family: inherit; font-size: 12px; }
   .status.loading { color: var(--accent2); }
-  .actions { display: flex; gap: 6px; margin-top: 10px; }
+  .actions { display: flex; gap: 6px; margin-top: var(--s3); }
   .actions button {
-    flex: 1;
-    padding: 7px 8px;
-    font-size: 12px;
-    margin-top: 0;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 4px;
+    flex: 1; height: 28px; padding: 0 8px; font-size: 11.5px;
   }
   .spinner {
     width: 22px; height: 22px;
-    border: 2px solid #2b2f3a;
+    border: 2px solid var(--border);
     border-top-color: var(--accent2);
     border-radius: 50%;
     animation: spin .8s linear infinite;
   }
   @keyframes spin { to { transform: rotate(360deg); } }
-  footer { color: var(--muted); font-size: 12px; text-align: center; margin-top: 40px; }
 
-  /* Lightbox */
+  footer {
+    color: #6b7280; font-size: 12px; text-align: center;
+    margin-top: var(--s16); padding-top: var(--s6);
+    border-top: 1px solid var(--border-soft);
+  }
+
+  /* ---------- Lightbox ---------- */
   #lightbox {
     display: none;
     position: fixed;
     inset: 0;
     background: rgba(10, 11, 14, .92);
+    backdrop-filter: blur(4px);
     z-index: 100;
     align-items: center;
     justify-content: center;
     flex-direction: column;
-    padding: 24px;
+    padding: var(--s6);
   }
   #lightbox.open { display: flex; }
   #lightbox img {
     max-width: min(90vw, 900px);
     max-height: 70vh;
     object-fit: contain;
-    border-radius: 8px;
+    border-radius: var(--r-control);
     background:
       linear-gradient(45deg, #22252c 25%, transparent 25%),
       linear-gradient(-45deg, #22252c 25%, transparent 25%),
@@ -155,150 +532,226 @@
     background-position: 0 0, 0 8px, 8px -8px, -8px 0px;
     background-color: #14161b;
   }
-  #lightbox .lb-title { color: var(--text); font-size: 14px; margin-top: 16px; }
-  #lightbox .lb-actions { display: flex; gap: 10px; margin-top: 14px; }
-  #lightbox .lb-actions button { margin-top: 0; padding: 10px 18px; }
+  #lightbox .lb-title { color: var(--text); font-size: 13.5px; margin-top: var(--s4); font-weight: 500; }
+  #lightbox .lb-actions { display: flex; gap: var(--s3); margin-top: var(--s4); }
   #lightbox .lb-close {
     position: absolute;
-    top: 20px;
-    right: 24px;
-    background: none;
-    border: none;
+    top: 20px; right: 24px;
+    background: none; border: none;
     color: var(--muted);
     font-size: 28px;
     cursor: pointer;
     padding: 0;
+    height: auto;
+    line-height: 1;
   }
   #lightbox .lb-close:hover { color: var(--text); }
+
   #toast {
     position: fixed;
-    bottom: 24px;
+    bottom: var(--s6);
     left: 50%;
     transform: translateX(-50%) translateY(20px);
     background: var(--accent);
-    color: #0f1115;
+    color: #0d1117;
     padding: 10px 18px;
-    border-radius: 8px;
+    border-radius: var(--r-control);
     font-size: 13px;
     font-weight: 600;
     opacity: 0;
-    transition: opacity .2s, transform .2s;
+    transition: opacity .2s, transform .2s var(--ease);
     pointer-events: none;
     z-index: 200;
+    box-shadow: 0 8px 24px rgba(0,0,0,.4);
   }
   #toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+  @media (max-width: 640px) {
+    body { padding: var(--s6) var(--s4) var(--s12); }
+    header.masthead { flex-direction: column; align-items: flex-start; gap: var(--s3); }
+    .panel { padding: var(--s4); }
+  }
 </style>
 </head>
 <body>
 <div class="wrap">
-  <h1>Demo — media-mvp</h1>
-  <p class="subtitle">This is how a client's website would see its images served through your API. Each card is a real request to your server.</p>
+
+  <header class="masthead">
+    <div>
+      <span class="logo"><img src="assets/logo.png" alt="Fottly"></span>
+      <p class="tagline">
+        This is how a client's website would see its images served through your API.
+        Each card below is a real request to your server.
+      </p>
+    </div>
+    <span class="badge"><span class="dot"></span> Local demo</span>
+  </header>
 
   <div class="panel">
-    <h2>Configuration</h2>
+    <div class="panel-head">
+      <h2>Connection</h2>
+      <p class="panel-note">Requires <code style="font-family:var(--mono);font-size:11.5px;">docker compose up</code> to be running</p>
+    </div>
+
     <div class="row">
       <div class="field">
         <label for="serverUrl">Server URL</label>
-        <input id="serverUrl" value="http://localhost:3000">
+        <input id="serverUrl" class="mono" value="http://localhost:3000">
       </div>
       <div class="field">
-        <label for="apiKey">API key (only needed for /files, /t/ delivery is already public)</label>
-        <input id="apiKey" value="dev-secret-key">
+        <label for="apiKey">API key <span class="hint-inline">— only for /files, delivery is public</span></label>
+        <input id="apiKey" class="mono" value="dev-secret-key">
       </div>
     </div>
+
     <div class="row">
       <div class="field">
-        <label for="filename">Filename (already uploaded to the bucket)</label>
-        <input id="filename" placeholder="your-image.jpg">
+        <label for="filename">Filename <span class="hint-inline">— already in the bucket</span></label>
+        <input id="filename" class="mono" placeholder="your-image.jpg">
       </div>
       <div class="field">
-        <label for="watermark">Watermark file (optional, already uploaded)</label>
-        <input id="watermark" placeholder="logo.png">
+        <label for="watermark">Watermark file <span class="hint-inline">— optional</span></label>
+        <input id="watermark" class="mono" placeholder="logo.png">
       </div>
     </div>
-    <button id="loadBtn">Load quick examples</button>
+
+    <div class="actions-bar">
+      <button id="loadBtn" class="primary">Load quick examples</button>
+    </div>
     <p class="hint">
-      Requires <code>docker compose up</code> to be running and the file to already exist in the bucket
-      (uploaded earlier via the MinIO console). The quick examples show: original, 300x300 crop,
-      fit without cropping, background removed, and watermark if you fill in that field.
+      The quick examples show: original, 300&times;300 crop, fit without cropping,
+      background removed, and a watermarked version if you fill in that field.
     </p>
   </div>
 
   <div class="panel">
-    <h2>Custom transformation</h2>
-    <div class="row">
-      <div class="field narrow">
-        <label for="cWidth">Width (w)</label>
-        <input id="cWidth" type="number" min="1" placeholder="800">
-      </div>
-      <div class="field narrow">
-        <label for="cHeight">Height (h)</label>
-        <input id="cHeight" type="number" min="1" placeholder="600">
-      </div>
-      <div class="field narrow">
-        <label for="cFormat">Format (f)</label>
-        <select id="cFormat">
-          <option value="">— default (webp) —</option>
-          <option value="webp">webp</option>
-          <option value="avif">avif</option>
-          <option value="jpeg">jpeg</option>
-          <option value="png">png</option>
-        </select>
-      </div>
-      <div class="field narrow">
-        <label for="cQuality">Quality (q)</label>
-        <input id="cQuality" type="number" min="1" max="100" placeholder="80">
-      </div>
-      <div class="field narrow">
-        <label for="cCrop">Crop (c)</label>
-        <select id="cCrop">
-          <option value="">— fill (default) —</option>
-          <option value="fill">fill (crops)</option>
-          <option value="fit">fit (no cropping)</option>
-        </select>
+    <div class="panel-head">
+      <h2>Custom transformation</h2>
+      <p class="panel-note">Sliders at <strong style="color:var(--muted);font-weight:600;">Auto</strong> are left out of the URL</p>
+    </div>
+
+    <div class="group">
+      <p class="group-label">Size &amp; quality</p>
+      <div class="row">
+        <div class="field slider-field">
+          <div class="slider-head">
+            <span class="label">Width <span class="hint-inline">(w)</span></span>
+            <span class="slider-value is-auto" id="cWidthVal">Auto</span>
+          </div>
+          <input type="range" id="cWidth" min="0" max="2000" step="10" value="0">
+        </div>
+        <div class="field slider-field">
+          <div class="slider-head">
+            <span class="label">Height <span class="hint-inline">(h)</span></span>
+            <span class="slider-value is-auto" id="cHeightVal">Auto</span>
+          </div>
+          <input type="range" id="cHeight" min="0" max="2000" step="10" value="0">
+        </div>
+        <div class="field slider-field">
+          <div class="slider-head">
+            <span class="label">Quality <span class="hint-inline">(q)</span></span>
+            <span class="slider-value is-auto" id="cQualityVal">Auto</span>
+          </div>
+          <input type="range" id="cQuality" min="0" max="100" step="1" value="0">
+        </div>
       </div>
     </div>
-    <div class="row">
-      <div class="field narrow checkbox-field">
-        <input id="cBgRemove" type="checkbox">
-        <label for="cBgRemove">bg_remove (remove background)</label>
-      </div>
-      <div class="field">
-        <label for="cWatermark">Watermark (wm), optional — leave empty to skip</label>
-        <input id="cWatermark" placeholder="logo.png">
-      </div>
-      <div class="field narrow">
-        <label for="cGravity">Watermark position (wg)</label>
-        <select id="cGravity">
-          <option value="">northwest (default)</option>
-          <option value="north">north</option>
-          <option value="northeast">northeast</option>
-          <option value="east">east</option>
-          <option value="southeast">southeast</option>
-          <option value="south">south</option>
-          <option value="southwest">southwest</option>
-          <option value="west">west</option>
-          <option value="center">center</option>
-        </select>
-      </div>
-    </div>
-    <div class="row">
-      <div class="field narrow">
-        <label for="cWmScale">Watermark size % (ws)</label>
-        <input id="cWmScale" type="number" min="1" max="100" placeholder="20">
-      </div>
-      <div class="field narrow">
-        <label for="cWmOpacity">Watermark opacity % (wo)</label>
-        <input id="cWmOpacity" type="number" min="1" max="100" placeholder="60">
+
+    <div class="group">
+      <div class="row">
+        <div class="field" style="flex:0 0 auto;">
+          <span class="label" style="margin-bottom:6px;display:block;">Format <span class="hint-inline">(f)</span></span>
+          <div class="segmented" id="segFormat">
+            <button type="button" data-value="" class="is-active">Auto</button>
+            <button type="button" data-value="webp">webp</button>
+            <button type="button" data-value="avif">avif</button>
+            <button type="button" data-value="jpeg">jpeg</button>
+            <button type="button" data-value="png">png</button>
+          </div>
+        </div>
+        <div class="field narrow" style="flex:0 0 auto;">
+          <span class="label" style="margin-bottom:6px;display:block;">Crop mode <span class="hint-inline">(c)</span></span>
+          <div class="segmented" id="segCrop">
+            <button type="button" data-value="" class="is-active">Auto</button>
+            <button type="button" data-value="fill">fill</button>
+            <button type="button" data-value="fit">fit</button>
+          </div>
+        </div>
       </div>
     </div>
-    <button id="customBtn" class="secondary">Add custom transformation</button>
-    <p class="hint" id="customPreview">Fill in whichever fields you want to combine and click the button — a new card is added below with exactly that URL.</p>
+
+    <div class="group">
+      <p class="group-label">Background</p>
+      <div class="row">
+        <div class="field" style="flex:0 1 300px;">
+          <div class="toggle-field">
+            <button type="button" class="toggle" id="cBgRemove" role="switch" aria-checked="false" aria-labelledby="bgRemoveLabel"></button>
+            <span class="toggle-label" id="bgRemoveLabel">Remove background <span class="hint-inline">(bg_remove)</span></span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="group">
+      <p class="group-label">Watermark</p>
+      <div class="row">
+        <div class="field" style="flex:0 1 420px;">
+          <label for="cWatermark">File <span class="hint-inline">(wm) — leave empty to skip</span></label>
+          <input id="cWatermark" class="mono" placeholder="logo.png">
+        </div>
+      </div>
+      <div class="row align-start wm-dependent is-disabled" id="wmSlidersRow" style="margin-top:var(--s4);">
+        <div class="field narrow" style="flex:0 0 auto;">
+          <span class="label" style="margin-bottom:6px;display:block;">Position <span class="hint-inline">(wg)</span></span>
+          <div class="gravity-grid" id="gravityGrid">
+            <button type="button" data-value="northwest" class="is-active" title="northwest"></button>
+            <button type="button" data-value="north" title="north"></button>
+            <button type="button" data-value="northeast" title="northeast"></button>
+            <button type="button" data-value="west" title="west"></button>
+            <button type="button" data-value="center" title="center"></button>
+            <button type="button" data-value="east" title="east"></button>
+            <button type="button" data-value="southwest" title="southwest"></button>
+            <button type="button" data-value="south" title="south"></button>
+            <button type="button" data-value="southeast" title="southeast"></button>
+          </div>
+        </div>
+        <div class="field slider-field">
+          <div class="slider-head">
+            <span class="label">Size <span class="hint-inline">(ws) — % of width</span></span>
+            <span class="slider-value is-auto" id="cWmScaleVal">Auto</span>
+          </div>
+          <input type="range" id="cWmScale" min="0" max="100" step="1" value="0">
+        </div>
+        <div class="field slider-field">
+          <div class="slider-head">
+            <span class="label">Opacity <span class="hint-inline">(wo) — %</span></span>
+            <span class="slider-value is-auto" id="cWmOpacityVal">Auto</span>
+          </div>
+          <input type="range" id="cWmOpacity" min="0" max="100" step="1" value="0">
+        </div>
+      </div>
+    </div>
+
+    <div class="url-preview">
+      <div class="url-text" id="customPreview"></div>
+      <button type="button" class="secondary" id="copyUrlBtn">Copy URL</button>
+    </div>
+
+    <div class="actions-bar">
+      <button id="customBtn" class="primary">Add custom transformation</button>
+      <button id="resetBtn" class="secondary">Reset</button>
+    </div>
   </div>
 
+  <div class="results-head">
+    <h2>Results</h2>
+  </div>
   <div id="grid" class="grid"></div>
+  <div class="empty-state" id="emptyState">
+    No requests yet — load the quick examples or add a custom transformation.
+  </div>
 
-  <footer>media-mvp · local demo, nothing is sent anywhere external</footer>
+  <footer>Fottly &middot; local demo, nothing is sent anywhere external</footer>
 </div>
 
 <div id="lightbox">
@@ -306,7 +759,7 @@
   <img id="lbImg" alt="">
   <div class="lb-title" id="lbTitle"></div>
   <div class="lb-actions">
-    <button id="lbDownload">Download</button>
+    <button class="primary" id="lbDownload">Download</button>
     <button class="secondary" id="lbCopy">Copy image</button>
   </div>
 </div>
@@ -316,7 +769,10 @@
 <script>
 const loadBtn = document.getElementById("loadBtn");
 const customBtn = document.getElementById("customBtn");
+const resetBtn = document.getElementById("resetBtn");
+const copyUrlBtn = document.getElementById("copyUrlBtn");
 const grid = document.getElementById("grid");
+const emptyState = document.getElementById("emptyState");
 const lightbox = document.getElementById("lightbox");
 const lbImg = document.getElementById("lbImg");
 const lbTitle = document.getElementById("lbTitle");
@@ -324,9 +780,177 @@ const lbClose = document.getElementById("lbClose");
 const lbDownload = document.getElementById("lbDownload");
 const lbCopy = document.getElementById("lbCopy");
 const toast = document.getElementById("toast");
+const customPreview = document.getElementById("customPreview");
 
 let activeCardData = null; // { blob, title, path }
 
+/* ---------- Control state ---------- */
+// Segmented controls and the gravity grid keep their value in data attributes
+// on the container, so reading them mirrors reading a <select>.
+const segFormat = document.getElementById("segFormat");
+const segCrop = document.getElementById("segCrop");
+const gravityGrid = document.getElementById("gravityGrid");
+const bgToggle = document.getElementById("cBgRemove");
+
+function initSegmented(container) {
+  container.dataset.value = container.querySelector(".is-active")?.dataset.value ?? "";
+  container.addEventListener("click", (e) => {
+    const btn = e.target.closest("button");
+    if (!btn) return;
+    container.querySelectorAll("button").forEach((b) => b.classList.toggle("is-active", b === btn));
+    container.dataset.value = btn.dataset.value;
+    updatePreview();
+  });
+}
+initSegmented(segFormat);
+initSegmented(segCrop);
+initSegmented(gravityGrid);
+
+bgToggle.addEventListener("click", () => {
+  const on = bgToggle.classList.toggle("is-on");
+  bgToggle.setAttribute("aria-checked", String(on));
+  updatePreview();
+});
+
+/* ---------- Sliders ---------- */
+// A value of 0 means "not set": the parameter is left out of the URL entirely,
+// which keeps the same semantics the previous empty number inputs had.
+const SLIDERS = [
+  { input: "cWidth", out: "cWidthVal", suffix: "px" },
+  { input: "cHeight", out: "cHeightVal", suffix: "px" },
+  { input: "cQuality", out: "cQualityVal", suffix: "" },
+  { input: "cWmScale", out: "cWmScaleVal", suffix: "%" },
+  { input: "cWmOpacity", out: "cWmOpacityVal", suffix: "%" },
+];
+
+function syncSliderLabel({ input, out, suffix }) {
+  const el = document.getElementById(input);
+  const label = document.getElementById(out);
+  const v = Number(el.value);
+  if (v === 0) {
+    label.textContent = "Auto";
+    label.classList.add("is-auto");
+  } else {
+    label.textContent = v + suffix;
+    label.classList.remove("is-auto");
+  }
+}
+
+SLIDERS.forEach((s) => {
+  const el = document.getElementById(s.input);
+  el.addEventListener("input", () => {
+    syncSliderLabel(s);
+    updatePreview();
+  });
+  syncSliderLabel(s);
+});
+
+/* ---------- Watermark dependent controls ---------- */
+const wmInput = document.getElementById("cWatermark");
+function syncWatermarkState() {
+  const enabled = wmInput.value.trim() !== "";
+  document.querySelectorAll(".wm-dependent").forEach((el) => {
+    el.classList.toggle("is-disabled", !enabled);
+  });
+}
+wmInput.addEventListener("input", () => {
+  syncWatermarkState();
+  updatePreview();
+});
+syncWatermarkState();
+
+document.getElementById("filename").addEventListener("input", updatePreview);
+
+/* ---------- URL building ---------- */
+function sliderVal(id) {
+  const v = Number(document.getElementById(id).value);
+  return v > 0 ? String(v) : "";
+}
+
+function buildTransforms() {
+  const parts = [];
+  const w = sliderVal("cWidth");
+  const h = sliderVal("cHeight");
+  const f = segFormat.dataset.value;
+  const q = sliderVal("cQuality");
+  const c = segCrop.dataset.value;
+  const bg = bgToggle.classList.contains("is-on");
+  const wm = wmInput.value.trim();
+  const wg = gravityGrid.dataset.value;
+  const ws = sliderVal("cWmScale");
+  const wo = sliderVal("cWmOpacity");
+
+  if (w) parts.push(`w_${w}`);
+  if (h) parts.push(`h_${h}`);
+  if (c) parts.push(`c_${c}`);
+  if (bg) parts.push("bg_remove");
+  if (wm) parts.push(`wm_${wm}`);
+  if (wm && wg) parts.push(`wg_${wg}`);
+  if (wm && ws) parts.push(`ws_${ws}`);
+  if (wm && wo) parts.push(`wo_${wo}`);
+  if (f) parts.push(`f_${f}`);
+  if (q) parts.push(`q_${q}`);
+
+  return parts;
+}
+
+function currentUrlPath() {
+  const parts = buildTransforms();
+  if (parts.length === 0) return null;
+  const filename = document.getElementById("filename").value.trim();
+  return `/t/${parts.join(",")}/${filename || "your-image.jpg"}`;
+}
+
+function updatePreview() {
+  const parts = buildTransforms();
+  const serverUrl = document.getElementById("serverUrl").value.trim().replace(/\/$/, "");
+  const filename = document.getElementById("filename").value.trim();
+
+  if (parts.length === 0) {
+    customPreview.innerHTML = `<span class="u-dim">Adjust any control above to build a transformation URL.</span>`;
+    return;
+  }
+  customPreview.innerHTML =
+    `<span class="u-dim">${serverUrl}</span>/t/` +
+    `<span class="u-accent">${parts.join(",")}</span>/` +
+    `${filename || '<span class="u-dim">your-image.jpg</span>'}`;
+}
+
+document.getElementById("serverUrl").addEventListener("input", updatePreview);
+
+copyUrlBtn.addEventListener("click", async () => {
+  const path = currentUrlPath();
+  if (!path) { showToast("Nothing to copy yet"); return; }
+  const serverUrl = document.getElementById("serverUrl").value.trim().replace(/\/$/, "");
+  try {
+    await navigator.clipboard.writeText(serverUrl + path);
+    showToast("URL copied");
+  } catch {
+    showToast("Your browser blocked clipboard access");
+  }
+});
+
+resetBtn.addEventListener("click", () => {
+  SLIDERS.forEach((s) => {
+    document.getElementById(s.input).value = 0;
+    syncSliderLabel(s);
+  });
+  [segFormat, segCrop].forEach((seg) => {
+    seg.querySelectorAll("button").forEach((b, i) => b.classList.toggle("is-active", i === 0));
+    seg.dataset.value = "";
+  });
+  gravityGrid.querySelectorAll("button").forEach((b) => {
+    b.classList.toggle("is-active", b.dataset.value === "northwest");
+  });
+  gravityGrid.dataset.value = "northwest";
+  bgToggle.classList.remove("is-on");
+  bgToggle.setAttribute("aria-checked", "false");
+  wmInput.value = "";
+  syncWatermarkState();
+  updatePreview();
+});
+
+/* ---------- Toast / helpers ---------- */
 function showToast(msg) {
   toast.textContent = msg;
   toast.classList.add("show");
@@ -369,6 +993,9 @@ lbClose.addEventListener("click", closeLightbox);
 lightbox.addEventListener("click", (e) => {
   if (e.target === lightbox) closeLightbox();
 });
+document.addEventListener("keydown", (e) => {
+  if (e.key === "Escape" && lightbox.classList.contains("open")) closeLightbox();
+});
 
 lbDownload.addEventListener("click", () => {
   if (!activeCardData) return;
@@ -402,6 +1029,7 @@ async function copyBlobToClipboard(blob) {
   }
 }
 
+/* ---------- Cards ---------- */
 function buildPresetCards(filename, watermark) {
   const cards = [
     { title: "Original (served by your API)", transforms: "q_100" },
@@ -416,34 +1044,11 @@ function buildPresetCards(filename, watermark) {
 }
 
 function buildCustomCard(filename) {
-  const parts = [];
-  const w = document.getElementById("cWidth").value.trim();
-  const h = document.getElementById("cHeight").value.trim();
-  const f = document.getElementById("cFormat").value;
-  const q = document.getElementById("cQuality").value.trim();
-  const c = document.getElementById("cCrop").value;
-  const bg = document.getElementById("cBgRemove").checked;
-  const wm = document.getElementById("cWatermark").value.trim();
-  const wg = document.getElementById("cGravity").value;
-  const ws = document.getElementById("cWmScale").value.trim();
-  const wo = document.getElementById("cWmOpacity").value.trim();
-
-  if (w) parts.push(`w_${w}`);
-  if (h) parts.push(`h_${h}`);
-  if (c) parts.push(`c_${c}`);
-  if (bg) parts.push("bg_remove");
-  if (wm) parts.push(`wm_${wm}`);
-  if (wg) parts.push(`wg_${wg}`);
-  if (wm && ws) parts.push(`ws_${ws}`);
-  if (wm && wo) parts.push(`wo_${wo}`);
-  if (f) parts.push(`f_${f}`);
-  if (q) parts.push(`q_${q}`);
-
+  const parts = buildTransforms();
   if (parts.length === 0) {
-    alert("Fill in at least one parameter for the custom transformation.");
+    showToast("Adjust at least one control first");
     return null;
   }
-
   const transforms = parts.join(",");
   return {
     title: `Custom: ${transforms}`,
@@ -462,7 +1067,7 @@ function makeCard(card) {
       <div class="url">${card.path}</div>
       <div class="status loading">Loading…</div>
       <div class="actions" style="display:none;">
-        <button class="secondary act-view">View large</button>
+        <button class="secondary act-view">View</button>
         <button class="secondary act-download">Download</button>
         <button class="secondary act-copy">Copy</button>
       </div>
@@ -486,7 +1091,7 @@ async function loadCard(el, card, serverUrl, apiKey) {
     const blob = await res.blob();
     const url = URL.createObjectURL(blob);
     thumb.innerHTML = `<img src="${url}" alt="${card.title}">`;
-    status.textContent = `OK · ${(blob.size / 1024).toFixed(1)} KB · ${blob.type}`;
+    status.textContent = `${(blob.size / 1024).toFixed(1)} KB · ${blob.type}`;
     status.className = "status ok";
     actions.style.display = "flex";
 
@@ -496,7 +1101,7 @@ async function loadCard(el, card, serverUrl, apiKey) {
     el.querySelector(".act-download").addEventListener("click", () => downloadBlob(blob, card.title));
     el.querySelector(".act-copy").addEventListener("click", () => copyBlobToClipboard(blob));
   } catch (err) {
-    thumb.innerHTML = `<span style="color:#f87171;font-size:13px;padding:0 12px;text-align:center;">✕</span>`;
+    thumb.innerHTML = `<span style="color:#f87171;font-size:20px;">&#10005;</span>`;
     status.textContent = err.message || "Connection error (is docker compose running?)";
     status.className = "status err";
   }
@@ -510,15 +1115,20 @@ function currentConfig() {
   };
 }
 
+function hideEmptyState() {
+  emptyState.style.display = "none";
+}
+
 loadBtn.addEventListener("click", async () => {
   const { serverUrl, apiKey, filename } = currentConfig();
   const watermark = document.getElementById("watermark").value.trim();
 
   if (!filename) {
-    alert("Enter the name of a file you've already uploaded to the bucket.");
+    showToast("Enter a filename that's already in the bucket");
     return;
   }
 
+  hideEmptyState();
   grid.innerHTML = "";
   const cards = buildPresetCards(filename, watermark);
   const els = cards.map((card) => {
@@ -535,18 +1145,21 @@ loadBtn.addEventListener("click", async () => {
 customBtn.addEventListener("click", async () => {
   const { serverUrl, apiKey, filename } = currentConfig();
   if (!filename) {
-    alert("Enter the name of a file you've already uploaded to the bucket.");
+    showToast("Enter a filename that's already in the bucket");
     return;
   }
   const card = buildCustomCard(filename);
   if (!card) return;
 
+  hideEmptyState();
   const el = makeCard(card);
   grid.prepend(el);
   customBtn.disabled = true;
   await loadCard(el, card, serverUrl, apiKey);
   customBtn.disabled = false;
 });
+
+updatePreview();
 </script>
 </body>
 </html>

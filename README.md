@@ -1,13 +1,25 @@
-# media-mvp
+<p align="center">
+  <img src="assets/logo.png" alt="Fottly" width="260">
+</p>
 
-A self-hosted image transformation service — the first step toward an
-open-source Cloudinary alternative. Already tested and working: resizes,
-converts format, and caches the result so the same request is never
-processed twice.
+<h1 align="center">Fottly</h1>
+
+<p align="center">
+  A self-hosted image transformation service with built-in AI background
+  removal — an open-source Cloudinary alternative.
+</p>
+
+---
+
+Already tested and working: resizes, converts format, removes backgrounds,
+and caches the result so the same request is never processed twice.
 
 Source images and the result cache are read/written from S3-compatible
 storage (AWS S3, Cloudflare R2, MinIO...), configured via environment
 variables.
+
+There's a browsable demo page at [`demo.html`](demo.html) — open it in a
+browser with the stack running to build transformation URLs interactively.
 
 ## Environment variables
 
@@ -15,7 +27,7 @@ variables.
 | --- | --- | --- |
 | `S3_ENDPOINT` | S3 endpoint URL. Leave empty for real AWS S3. | `http://localhost:9000` |
 | `S3_REGION` | Region. | `us-east-1` |
-| `S3_BUCKET` | Bucket where source images and the cache (`cache/...`) live. | `media-mvp` |
+| `S3_BUCKET` | Bucket where source images and the cache (`cache/...`) live. | `fottly` |
 | `S3_ACCESS_KEY_ID` | Access key. | `minioadmin` |
 | `S3_SECRET_ACCESS_KEY` | Secret key. | `minioadmin` |
 | `S3_FORCE_PATH_STYLE` | `true` for MinIO/backends without virtual-hosted style. `false` on real AWS S3. | `true` |
@@ -70,14 +82,14 @@ docker compose up --build
 This starts:
 
 - `minio` — S3-compatible storage, with a web console at http://localhost:9001 (user/password: `minioadmin` / `minioadmin`)
-- `createbuckets` — automatically creates the `media-mvp` bucket on startup
+- `createbuckets` — automatically creates the `fottly` bucket on startup
 - `rembg` — internal background-removal service (not exposed to the host), with a real healthcheck (`curl -f http://localhost:7000/`) — `app` waits for it to report healthy before starting, not just started
 - `app` — the transformation service at http://localhost:3000, already configured to talk to MinIO and Rembg
 
 ### Upload a test image and check the transformation
 
 1. Open the MinIO console at http://localhost:9001 and log in with `minioadmin` / `minioadmin`.
-2. Go into the `media-mvp` bucket and upload any image ("Upload" → "Upload File" button), e.g. `your-image.jpg`.
+2. Go into the `fottly` bucket and upload any image ("Upload" → "Upload File" button), e.g. `your-image.jpg`.
 3. With the app running (`docker compose up`), visit in your browser:
 
    ```
@@ -96,7 +108,7 @@ Alternative without using the web console: if you have the `mc` client installed
 
 ```bash
 mc alias set local http://localhost:9000 minioadmin minioadmin
-mc cp your-image.jpg local/media-mvp/your-image.jpg
+mc cp your-image.jpg local/fottly/your-image.jpg
 ```
 
 ## Try it locally without Docker

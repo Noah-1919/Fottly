@@ -1,7 +1,7 @@
 {
-  "name": "media-mvp",
+  "name": "fottly",
   "version": "0.1.0",
-  "description": "Self-hosted image transformation service (open-source Cloudinary alternative)",
+  "description": "Fottly — self-hosted image transformation service with built-in AI background removal (open-source Cloudinary alternative)",
   "main": "dist/server.js",
   "type": "module",
   "scripts": {
