@@ -11,6 +11,10 @@
 
 ---
 
+<p align="center">
+  <img src="assets/demo.gif" alt="Fottly demo: transforming an image through the URL API" width="800">
+</p>
+
 Already tested and working: resizes, converts format, removes backgrounds,
 and caches the result so the same request is never processed twice.
 
