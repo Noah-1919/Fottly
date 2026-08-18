@@ -1,6 +1,0 @@
-<svg width="560" height="200" viewBox="0 0 560 200" xmlns="http://www.w3.org/2000/svg">
-  <rect width="560" height="200" rx="24" fill="#0f1115"/>
-  <path d="M60 60 L160 60 L130 92 L60 92 Z" fill="#6ee7b7"/>
-  <path d="M60 104 L130 104 L104 136 L60 136 Z" fill="#6ee7b7"/>
-  <text x="200" y="138" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="80" font-weight="600" fill="#ffffff">Fottly</text>
-</svg>
