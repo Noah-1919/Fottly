@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="assets/logo.png" alt="Fottly" width="260">
+  <img src="assets/logo-wordmark.png" alt="Fottly" width="260">
 </p>
 
 <h1 align="center">Fottly</h1>
