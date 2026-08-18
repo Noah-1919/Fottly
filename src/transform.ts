@@ -59,9 +59,14 @@ export function parseTransformString(raw: string): ParsedTransform {
           result.format = value as ParsedTransform["format"];
         }
         break;
-      case "q":
-        result.quality = parseInt(value, 10);
+      case "q": {
+        // Quality, as an integer from 1 to 100.
+        const quality = parseInt(value, 10);
+        if (!Number.isNaN(quality) && quality >= 1 && quality <= 100) {
+          result.quality = quality;
+        }
         break;
+      }
       case "c":
         if (value === "fill" || value === "fit") {
           result.crop = value;
