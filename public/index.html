@@ -192,6 +192,15 @@
   .pill .dot { width: 6px; height: 6px; border-radius: 50%; background: var(--accent); flex: none; }
   .hero-cta { display: flex; flex-wrap: wrap; gap: var(--s3); margin-bottom: var(--s12); }
 
+  .hero-demo { margin-bottom: var(--s8); }
+  .hero-demo img {
+    display: block;
+    width: 100%;
+    max-width: 800px;
+    border-radius: var(--r-card);
+    border: 1px solid var(--border);
+  }
+
   /* URL anatomy visual */
   .url-anatomy {
     background: var(--sunken);
@@ -480,6 +489,10 @@
         View on GitHub
       </a>
       <a href="demo.html" class="btn btn-secondary">Try the interactive demo</a>
+    </div>
+
+    <div class="hero-demo">
+      <img src="assets/demo.gif" alt="Screen recording of the Fottly demo page: transforming an uploaded image through the URL API, including resizing, format conversion, and AI background removal">
     </div>
 
     <div class="url-anatomy">
