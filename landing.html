@@ -1,0 +1,811 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Fottly — Self-hosted image transformation with AI background removal</title>
+<meta name="description" content="Fottly is a self-hosted, open-source image transformation service with built-in AI background removal. Resize, convert, crop and watermark through simple URL parameters, on your own infrastructure.">
+<link rel="icon" type="image/png" href="assets/favicon.png">
+<style>
+  :root {
+    /* Brand palette — shared with demo.html */
+    --bg: #0f1115;
+    --card: #1a1d24;
+    --border: #2b2f3a;
+    --accent: #6ee7b7;
+    --accent2: #60a5fa;
+    --text: #e5e7eb;
+    --muted: #9aa1ad;
+
+    /* Derived surfaces */
+    --sunken: #0d0f13;
+    --raised: #222630;
+    --border-soft: #21252e;
+    --faint: #6b7280;
+
+    /* 4px spacing scale */
+    --s1: 4px;  --s2: 8px;  --s3: 12px; --s4: 16px;
+    --s6: 24px; --s8: 32px; --s12: 48px; --s16: 64px;
+    --s24: 96px; --s32: 128px;
+
+    /* Radii */
+    --r-control: 8px;
+    --r-card: 12px;
+
+    --h-control: 42px;
+
+    --mono: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace;
+    --ease: cubic-bezier(.175, .885, .32, 1.1);
+  }
+
+  * { box-sizing: border-box; }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    margin: 0;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    font-size: 15px;
+    line-height: 1.6;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  .wrap { max-width: 1080px; margin: 0 auto; padding: 0 var(--s6); }
+
+  /* ---------- Logo (cropped from assets/logo.png) ----------
+     The source file is 2000x2000 with the wordmark occupying only
+     x 720-1307, y 951-1100. These calc() values crop to exactly that
+     region, so the mark stays tight and sharp at any --logo-h. */
+  .logo {
+    --logo-h: 30px;
+    display: block;
+    width: calc(var(--logo-h) * 3.92);
+    height: var(--logo-h);
+    overflow: hidden;
+    position: relative;
+    flex: none;
+  }
+  .logo img {
+    position: absolute;
+    width: calc(var(--logo-h) * 13.33333);
+    height: auto;
+    left: calc(var(--logo-h) * -4.8);
+    top: calc(var(--logo-h) * -6.34);
+  }
+
+  /* ---------- Nav ---------- */
+  nav {
+    border-bottom: 1px solid var(--border-soft);
+    position: sticky;
+    top: 0;
+    background: rgba(15, 17, 21, .82);
+    backdrop-filter: blur(10px);
+    z-index: 50;
+  }
+  nav .wrap {
+    height: 64px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--s6);
+  }
+  .nav-links { display: flex; align-items: center; gap: var(--s6); }
+  .nav-links a {
+    color: var(--muted);
+    text-decoration: none;
+    font-size: 14px;
+    font-weight: 500;
+    transition: color .15s;
+  }
+  .nav-links a:hover { color: var(--text); }
+
+  /* ---------- Buttons ---------- */
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: var(--s2);
+    height: var(--h-control);
+    padding: 0 20px;
+    border-radius: var(--r-control);
+    font-size: 14.5px;
+    font-weight: 600;
+    text-decoration: none;
+    border: 1px solid transparent;
+    cursor: pointer;
+    font-family: inherit;
+    transition: background .15s, border-color .15s, color .15s;
+    white-space: nowrap;
+  }
+  .btn-primary { background: var(--accent); color: #0d1117; }
+  .btn-primary:hover { background: #8af0c8; }
+  .btn-secondary {
+    background: var(--raised);
+    color: var(--text);
+    border-color: var(--border);
+  }
+  .btn-secondary:hover { background: #2a2f3a; border-color: #3a4150; }
+  .btn-sm { height: 34px; padding: 0 14px; font-size: 13.5px; }
+  .btn:focus-visible { outline: none; box-shadow: 0 0 0 3px rgba(96,165,250,.35); }
+
+  /* ---------- Sections ---------- */
+  section { padding: var(--s24) 0; }
+  section + section { border-top: 1px solid var(--border-soft); }
+
+  .eyebrow {
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: .09em;
+    color: var(--accent);
+    margin: 0 0 var(--s3);
+  }
+  h1 {
+    font-size: clamp(32px, 5.2vw, 52px);
+    font-weight: 600;
+    letter-spacing: -.032em;
+    line-height: 1.08;
+    margin: 0 0 var(--s6);
+    max-width: 17ch;
+  }
+  h2 {
+    font-size: clamp(24px, 3.2vw, 34px);
+    font-weight: 600;
+    letter-spacing: -.024em;
+    line-height: 1.2;
+    margin: 0 0 var(--s4);
+    max-width: 24ch;
+  }
+  h3 {
+    font-size: 15.5px;
+    font-weight: 600;
+    letter-spacing: -.01em;
+    margin: 0 0 var(--s2);
+  }
+  .lead {
+    font-size: 17px;
+    color: var(--muted);
+    margin: 0 0 var(--s8);
+    max-width: 60ch;
+    line-height: 1.65;
+  }
+  .section-intro { max-width: 62ch; margin-bottom: var(--s12); }
+  .section-intro .lead { margin-bottom: 0; }
+
+  /* ---------- Hero ---------- */
+  .hero { padding: var(--s24) 0 var(--s16); }
+  .hero-badges { display: flex; flex-wrap: wrap; gap: var(--s2); margin-bottom: var(--s6); }
+  .pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--muted);
+    background: var(--sunken);
+    border: 1px solid var(--border);
+    border-radius: 999px;
+    padding: 4px 12px;
+  }
+  .pill .dot { width: 6px; height: 6px; border-radius: 50%; background: var(--accent); flex: none; }
+  .hero-cta { display: flex; flex-wrap: wrap; gap: var(--s3); margin-bottom: var(--s12); }
+
+  /* URL anatomy visual */
+  .url-anatomy {
+    background: var(--sunken);
+    border: 1px solid var(--border);
+    border-radius: var(--r-card);
+    padding: var(--s6);
+    overflow-x: auto;
+  }
+  .url-anatomy .url-line {
+    font-family: var(--mono);
+    font-size: 14px;
+    line-height: 1.9;
+    white-space: nowrap;
+  }
+  .u-host { color: var(--faint); }
+  .u-route { color: var(--muted); }
+  .u-param { color: var(--accent); }
+  .u-file { color: var(--accent2); }
+  .url-legend {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--s2) var(--s6);
+    margin-top: var(--s4);
+    padding-top: var(--s4);
+    border-top: 1px solid var(--border-soft);
+    font-size: 12.5px;
+    color: var(--muted);
+  }
+  .url-legend span { display: inline-flex; align-items: center; gap: 6px; }
+  .swatch { width: 8px; height: 8px; border-radius: 2px; flex: none; }
+
+  /* ---------- Problem ---------- */
+  .compare {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: var(--s4);
+  }
+  .compare-col {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: var(--r-card);
+    padding: var(--s6);
+  }
+  .compare-col.is-good { border-color: rgba(110, 231, 183, .28); }
+  .compare-col h3 { display: flex; align-items: center; gap: var(--s2); margin-bottom: var(--s4); }
+  .compare-list { list-style: none; margin: 0; padding: 0; display: grid; gap: var(--s3); }
+  .compare-list li {
+    display: flex;
+    gap: var(--s3);
+    font-size: 14.5px;
+    color: var(--muted);
+    line-height: 1.55;
+  }
+  .compare-list .mark { flex: none; margin-top: 2px; }
+  .compare-col.is-good .compare-list li { color: var(--text); }
+
+  /* ---------- Features ---------- */
+  .features {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+    gap: var(--s4);
+  }
+  .feature {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: var(--r-card);
+    padding: var(--s6);
+    transition: border-color .15s;
+  }
+  .feature:hover { border-color: #39404e; }
+  .feature .icon {
+    width: 34px; height: 34px;
+    border-radius: var(--r-control);
+    background: var(--sunken);
+    border: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--accent);
+    margin-bottom: var(--s4);
+  }
+  .feature p { margin: 0; font-size: 14px; color: var(--muted); line-height: 1.6; }
+  .feature code {
+    font-family: var(--mono);
+    font-size: 12px;
+    background: var(--sunken);
+    border: 1px solid var(--border-soft);
+    border-radius: 4px;
+    padding: 1px 5px;
+    color: var(--accent);
+  }
+
+  /* ---------- Code blocks ---------- */
+  .code-block {
+    background: var(--sunken);
+    border: 1px solid var(--border);
+    border-radius: var(--r-card);
+    overflow: hidden;
+  }
+  .code-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--s4);
+    padding: var(--s3) var(--s3) var(--s3) var(--s4);
+    border-bottom: 1px solid var(--border-soft);
+    background: rgba(255,255,255,.015);
+  }
+  .code-head .label {
+    font-size: 11.5px;
+    font-weight: 600;
+    letter-spacing: .06em;
+    text-transform: uppercase;
+    color: var(--muted);
+  }
+  .code-block pre {
+    margin: 0;
+    padding: var(--s4);
+    overflow-x: auto;
+    font-family: var(--mono);
+    font-size: 13px;
+    line-height: 1.85;
+    color: var(--text);
+  }
+  .c-comment { color: var(--faint); }
+  .c-param { color: var(--accent); }
+  .c-path { color: var(--accent2); }
+  .c-cmd { color: var(--text); }
+
+  .copy-btn {
+    background: var(--raised);
+    border: 1px solid var(--border);
+    color: var(--muted);
+    border-radius: 6px;
+    height: 28px;
+    padding: 0 10px;
+    font-size: 12px;
+    font-weight: 500;
+    font-family: inherit;
+    cursor: pointer;
+    transition: color .15s, border-color .15s;
+    flex: none;
+  }
+  .copy-btn:hover { color: var(--text); border-color: #3a4150; }
+  .copy-btn.is-done { color: var(--accent); border-color: rgba(110,231,183,.4); }
+
+  /* param reference table */
+  .params {
+    margin-top: var(--s4);
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(228px, 1fr));
+    gap: var(--s1);
+  }
+  .param {
+    display: flex;
+    gap: var(--s3);
+    align-items: baseline;
+    padding: var(--s2) var(--s3);
+    border-radius: 6px;
+    font-size: 13.5px;
+    color: var(--muted);
+  }
+  .param:hover { background: var(--card); }
+  .param b {
+    font-family: var(--mono);
+    font-size: 12.5px;
+    color: var(--accent);
+    font-weight: 500;
+    flex: none;
+  }
+
+  /* ---------- Two-column prose ---------- */
+  .split {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: var(--s6);
+  }
+  .prose-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: var(--r-card);
+    padding: var(--s6);
+  }
+  .prose-card p { color: var(--muted); font-size: 14.5px; margin: 0 0 var(--s3); line-height: 1.65; }
+  .prose-card p:last-child { margin-bottom: 0; }
+  .prose-card strong { color: var(--text); font-weight: 600; }
+
+  /* ---------- Steps ---------- */
+  /* Capped so step copy keeps a comfortable reading measure instead of
+     running the full width of the container. */
+  .steps { display: grid; gap: var(--s4); margin-bottom: var(--s8); max-width: 76ch; }
+  .step { display: flex; gap: var(--s4); align-items: flex-start; }
+  .step-num {
+    flex: none;
+    width: 26px; height: 26px;
+    border-radius: 50%;
+    background: var(--sunken);
+    border: 1px solid var(--border);
+    color: var(--accent);
+    font-family: var(--mono);
+    font-size: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-top: 1px;
+  }
+  .step-body { font-size: 14.5px; color: var(--muted); }
+  .step-body strong { color: var(--text); font-weight: 600; }
+  .step-body code {
+    font-family: var(--mono);
+    font-size: 12.5px;
+    background: var(--sunken);
+    border: 1px solid var(--border-soft);
+    border-radius: 4px;
+    padding: 1px 5px;
+    color: var(--text);
+  }
+
+  /* ---------- Footer ---------- */
+  footer {
+    border-top: 1px solid var(--border-soft);
+    padding: var(--s12) 0;
+  }
+  footer .wrap {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--s6);
+    flex-wrap: wrap;
+  }
+  .footer-links { display: flex; align-items: center; gap: var(--s6); flex-wrap: wrap; }
+  .footer-links a { color: var(--muted); text-decoration: none; font-size: 13.5px; transition: color .15s; }
+  .footer-links a:hover { color: var(--text); }
+  .footer-note { color: var(--faint); font-size: 13px; }
+
+  @media (max-width: 720px) {
+    section { padding: var(--s16) 0; }
+    .hero { padding: var(--s16) 0 var(--s12); }
+    .nav-links .nav-hide { display: none; }
+    h1 { max-width: none; }
+    footer .wrap { flex-direction: column; align-items: flex-start; gap: var(--s3); }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    html { scroll-behavior: auto; }
+    * { transition: none !important; }
+  }
+</style>
+</head>
+<body>
+
+<nav>
+  <div class="wrap">
+    <a href="#top" aria-label="Fottly home" class="logo"><img src="assets/logo.png" alt="Fottly"></a>
+    <div class="nav-links">
+      <a href="#features" class="nav-hide">Features</a>
+      <a href="#api" class="nav-hide">URL API</a>
+      <a href="#open-source" class="nav-hide">Open source</a>
+      <a href="https://github.com/Noah-1919/Fottly" class="btn btn-secondary btn-sm">GitHub</a>
+    </div>
+  </div>
+</nav>
+
+<div id="top"></div>
+
+<header class="hero">
+  <div class="wrap">
+    <div class="hero-badges">
+      <span class="pill"><span class="dot"></span> Self-hosted</span>
+      <span class="pill">Open source · AGPL-3.0</span>
+      <span class="pill">AI background removal built in</span>
+    </div>
+
+    <h1>Your images, your server, your bill.</h1>
+
+    <p class="lead">
+      Fottly is a self-hosted image transformation service with AI background removal
+      built in. Resize, convert, crop and watermark through plain URL parameters —
+      running on your own infrastructure, storing into your own S3 bucket, with no
+      per-credit metering in the middle.
+    </p>
+
+    <div class="hero-cta">
+      <a href="https://github.com/Noah-1919/Fottly" class="btn btn-primary">
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27s1.36.09 2 .27c1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.01 8.01 0 0 0 16 8c0-4.42-3.58-8-8-8Z"/></svg>
+        View on GitHub
+      </a>
+      <a href="demo.html" class="btn btn-secondary">Try the interactive demo</a>
+    </div>
+
+    <div class="url-anatomy">
+      <div class="url-line">
+        <span class="u-host">https://media.yoursite.com</span><span class="u-route">/t/</span><span class="u-param">w_800,c_fit,bg_remove,wm_logo.png,f_webp</span><span class="u-route">/</span><span class="u-file">product.jpg</span>
+      </div>
+      <div class="url-legend">
+        <span><i class="swatch" style="background:var(--faint)"></i> your server</span>
+        <span><i class="swatch" style="background:var(--accent)"></i> transformations</span>
+        <span><i class="swatch" style="background:var(--accent2)"></i> file in your bucket</span>
+      </div>
+    </div>
+  </div>
+</header>
+
+<section id="problem">
+  <div class="wrap">
+    <div class="section-intro">
+      <p class="eyebrow">The problem</p>
+      <h2>Closed image CDNs bill you for traffic you don't control.</h2>
+      <p class="lead">
+        Hosted services meter credits against bandwidth, storage and transformations.
+        A campaign that goes well, a bot that crawls your catalogue, or simply growing
+        traffic all move the invoice — and the pipeline your product depends on lives
+        in someone else's account.
+      </p>
+    </div>
+
+    <div class="compare">
+      <div class="compare-col">
+        <h3>
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--muted)" stroke-width="1.6" stroke-linecap="round" aria-hidden="true"><path d="M4 4h16v16H4z" opacity=".35"/><path d="M8 12h8M12 8v8"/></svg>
+          Hosted image CDN
+        </h3>
+        <ul class="compare-list">
+          <li><span class="mark">·</span> Usage-based credits that move with your traffic</li>
+          <li><span class="mark">·</span> Your originals live in a third-party account</li>
+          <li><span class="mark">·</span> Pricing and limits can change under you</li>
+          <li><span class="mark">·</span> Migrating away means rewriting every image URL</li>
+          <li><span class="mark">·</span> Background removal is usually a paid add-on</li>
+        </ul>
+      </div>
+      <div class="compare-col is-good">
+        <h3>
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m5 13 4 4L19 7"/></svg>
+          Fottly, self-hosted
+        </h3>
+        <ul class="compare-list">
+          <li><span class="mark">·</span> Runs on hardware you already pay for</li>
+          <li><span class="mark">·</span> Originals and cache stay in your own S3 bucket</li>
+          <li><span class="mark">·</span> AGPL-3.0 — the source can't be taken away from you</li>
+          <li><span class="mark">·</span> You own the URL scheme and the domain serving it</li>
+          <li><span class="mark">·</span> AI background removal included, not an add-on</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="features">
+  <div class="wrap">
+    <div class="section-intro">
+      <p class="eyebrow">Features</p>
+      <h2>Everything happens through the URL.</h2>
+      <p class="lead">
+        No SDK to install and no build step. Point an <code style="font-family:var(--mono);font-size:13px;">&lt;img&gt;</code>
+        tag at your server and the transformation is described right there in the path.
+      </p>
+    </div>
+
+    <div class="features">
+      <div class="feature">
+        <div class="icon">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 3h7v7H3zM14 14h7v7h-7z"/><path d="M14 3h7v7"/><path d="M10 21H3v-7"/></svg>
+        </div>
+        <h3>Resize &amp; crop</h3>
+        <p>Set width and height with <code>w_</code> and <code>h_</code>. Choose <code>c_fill</code> to crop to an exact box, or <code>c_fit</code> to keep the whole image inside it.</p>
+      </div>
+
+      <div class="feature">
+        <div class="icon">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 9h14l-4-4"/><path d="M21 15H7l4 4"/></svg>
+        </div>
+        <h3>Modern formats</h3>
+        <p>Convert on the fly with <code>f_webp</code>, <code>f_avif</code>, <code>f_jpeg</code> or <code>f_png</code>, and tune compression with <code>q_80</code>.</p>
+      </div>
+
+      <div class="feature">
+        <div class="icon">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3a4 4 0 0 1 4 4c0 2.5-4 4.5-4 4.5S8 9.5 8 7a4 4 0 0 1 4-4Z"/><path d="M4.5 20.5c2-3 4.8-4.5 7.5-4.5s5.5 1.5 7.5 4.5"/></svg>
+        </div>
+        <h3>AI background removal</h3>
+        <p>Add <code>bg_remove</code> to cut the main subject out onto a transparent background, powered by Rembg running as an internal service.</p>
+      </div>
+
+      <div class="feature">
+        <div class="icon">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="2"/><rect x="12.5" y="12.5" width="6" height="6" rx="1"/></svg>
+        </div>
+        <h3>Configurable watermarks</h3>
+        <p>Overlay any image from your bucket with <code>wm_</code>, and control corner, size and opacity with <code>wg_</code>, <code>ws_</code> and <code>wo_</code>.</p>
+      </div>
+
+      <div class="feature">
+        <div class="icon">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 12a9 9 0 1 1-3.2-6.9"/><path d="M21 4v5h-5"/></svg>
+        </div>
+        <h3>Automatic caching</h3>
+        <p>Every result is cached in your bucket, so the same request is never processed twice. Deleting or renaming a file clears its derived cache.</p>
+      </div>
+
+      <div class="feature">
+        <div class="icon">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><ellipse cx="12" cy="6" rx="8" ry="3"/><path d="M4 6v6c0 1.7 3.6 3 8 3s8-1.3 8-3V6"/><path d="M4 12v6c0 1.7 3.6 3 8 3s8-1.3 8-3v-6"/></svg>
+        </div>
+        <h3>S3-compatible storage</h3>
+        <p>Works with AWS S3, Cloudflare R2 or a local MinIO. Point it at a bucket with environment variables — no proprietary storage layer.</p>
+      </div>
+
+      <div class="feature">
+        <div class="icon">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 4h6l2 2h8v12H4z"/><path d="M12 11v4M10 13h4"/></svg>
+        </div>
+        <h3>File management</h3>
+        <p>Upload, rename and delete through a small authenticated API. Cache invalidation is handled for you on every change.</p>
+      </div>
+
+      <div class="feature">
+        <div class="icon">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14"/><path d="m13 6 6 6-6 6"/></svg>
+        </div>
+        <h3>Safe passthrough</h3>
+        <p>Files that aren't transformable images — PDFs, audio, animated GIFs — are served untouched instead of erroring out.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="api">
+  <div class="wrap">
+    <div class="section-intro">
+      <p class="eyebrow">URL API</p>
+      <h2>Composable parameters, comma separated.</h2>
+      <p class="lead">
+        Stack transformations in a single path segment. Delivery URLs are public, so
+        they drop straight into an <code style="font-family:var(--mono);font-size:13px;">&lt;img src&gt;</code>
+        with no headers or signing.
+      </p>
+    </div>
+
+    <div class="code-block">
+      <div class="code-head">
+        <span class="label">Transformation examples</span>
+        <button class="copy-btn" type="button" data-copy="#api-code">Copy</button>
+      </div>
+<pre id="api-code"><span class="c-comment"># Resize to 400x300 and convert to WebP</span>
+/t/<span class="c-param">w_400,h_300,f_webp</span>/<span class="c-path">photo.jpg</span>
+
+<span class="c-comment"># Fit inside a 300x300 box without cropping</span>
+/t/<span class="c-param">w_300,h_300,c_fit,f_webp</span>/<span class="c-path">photo.jpg</span>
+
+<span class="c-comment"># Cut out the subject, keep transparency with PNG</span>
+/t/<span class="c-param">bg_remove,f_png</span>/<span class="c-path">product.jpg</span>
+
+<span class="c-comment"># Watermark, centered, 35% wide at 90% opacity</span>
+/t/<span class="c-param">w_600,wm_logo.png,wg_center,ws_35,wo_90</span>/<span class="c-path">photo.jpg</span>
+
+<span class="c-comment"># Everything at once</span>
+/t/<span class="c-param">w_800,c_fit,bg_remove,wm_logo.png,f_webp,q_75</span>/<span class="c-path">product.jpg</span></pre>
+    </div>
+
+    <div class="params">
+      <div class="param"><b>w_</b> width in pixels</div>
+      <div class="param"><b>h_</b> height in pixels</div>
+      <div class="param"><b>f_</b> webp · avif · jpeg · png</div>
+      <div class="param"><b>q_</b> quality, 0–100</div>
+      <div class="param"><b>c_</b> fill (crop) · fit (contain)</div>
+      <div class="param"><b>bg_remove</b> AI cutout</div>
+      <div class="param"><b>wm_</b> watermark file</div>
+      <div class="param"><b>wg_</b> watermark corner</div>
+      <div class="param"><b>ws_</b> watermark size %</div>
+      <div class="param"><b>wo_</b> watermark opacity %</div>
+    </div>
+  </div>
+</section>
+
+<section id="open-source">
+  <div class="wrap">
+    <div class="section-intro">
+      <p class="eyebrow">Self-hosted &amp; AGPL-3.0</p>
+      <h2>Infrastructure you control, licensed so it stays that way.</h2>
+    </div>
+
+    <div class="split">
+      <div class="prose-card">
+        <h3>What self-hosting gets you</h3>
+        <p>
+          Fottly runs as a small set of containers next to your own services. Source
+          images and every cached result are written to <strong>your</strong> S3-compatible
+          bucket — AWS S3, Cloudflare R2, or MinIO on your own box.
+        </p>
+        <p>
+          Nothing is metered by a third party and nothing leaves your network unless you
+          put it there. Background removal runs locally too: the AI service is internal to
+          the compose stack and isn't exposed to the host.
+        </p>
+        <p>
+          Management endpoints sit behind an API key, with per-IP rate limiting and an
+          upload size cap you configure.
+        </p>
+      </div>
+
+      <div class="prose-card">
+        <h3>What AGPL-3.0 means for you</h3>
+        <p>
+          Fottly is released under the <strong>GNU Affero General Public License v3.0</strong>.
+          You can run it, study it, modify it and deploy it — including inside a company,
+          for commercial work — at no cost.
+        </p>
+        <p>
+          The one obligation: if you <strong>modify</strong> Fottly and offer that modified
+          version to others over a network, you must make your modified source available to
+          those users under the same license.
+        </p>
+        <p>
+          Running it unmodified for your own product triggers no publishing obligation. It's
+          the clause that keeps the project from being closed up and resold as a black box.
+        </p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="start">
+  <div class="wrap">
+    <div class="section-intro">
+      <p class="eyebrow">Get started</p>
+      <h2>One command to a running stack.</h2>
+      <p class="lead">
+        The compose file brings up the service together with a local MinIO and the
+        background-removal worker, so you can try everything without an external account.
+      </p>
+    </div>
+
+    <div class="code-block" style="margin-bottom: var(--s6);">
+      <div class="code-head">
+        <span class="label">Terminal</span>
+        <button class="copy-btn" type="button" data-copy="#start-code">Copy</button>
+      </div>
+<pre id="start-code"><span class="c-cmd">docker compose up --build</span></pre>
+    </div>
+
+    <div class="steps">
+      <div class="step">
+        <span class="step-num">1</span>
+        <div class="step-body">
+          <strong>Bring up the stack.</strong> You get the transformation service on
+          <code>:3000</code>, a MinIO console on <code>:9001</code>, and the AI worker
+          running privately inside the compose network.
+        </div>
+      </div>
+      <div class="step">
+        <span class="step-num">2</span>
+        <div class="step-body">
+          <strong>Add an image.</strong> Drop a file into the bucket from the MinIO console,
+          the <code>mc</code> CLI, or the authenticated upload endpoint.
+        </div>
+      </div>
+      <div class="step">
+        <span class="step-num">3</span>
+        <div class="step-body">
+          <strong>Request a transformation.</strong> Open
+          <code>localhost:3000/t/w_400,h_300,f_webp/your-image.jpg</code> in a browser —
+          delivery URLs are public, so it just works.
+        </div>
+      </div>
+      <div class="step">
+        <span class="step-num">4</span>
+        <div class="step-body">
+          <strong>Point it at real storage.</strong> Swap the S3 environment variables for
+          your own bucket and put it behind your domain.
+        </div>
+      </div>
+    </div>
+
+    <div class="hero-cta" style="margin-bottom:0;">
+      <a href="https://github.com/Noah-1919/Fottly" class="btn btn-primary">Read the docs on GitHub</a>
+      <a href="demo.html" class="btn btn-secondary">Open the interactive demo</a>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="wrap">
+    <a href="#top" aria-label="Fottly home" class="logo" style="--logo-h:24px;"><img src="assets/logo.png" alt="Fottly"></a>
+    <div class="footer-links">
+      <a href="https://github.com/Noah-1919/Fottly">GitHub</a>
+      <a href="demo.html">Demo</a>
+      <a href="LICENSE">AGPL-3.0</a>
+    </div>
+    <span class="footer-note">Self-hosted image transformation.</span>
+  </div>
+</footer>
+
+<script>
+// Copy-to-clipboard for the code blocks. Reads textContent so the syntax
+// highlighting spans don't end up in the clipboard.
+document.querySelectorAll(".copy-btn").forEach((btn) => {
+  btn.addEventListener("click", async () => {
+    const target = document.querySelector(btn.dataset.copy);
+    if (!target) return;
+    try {
+      await navigator.clipboard.writeText(target.textContent.trim());
+      const original = btn.textContent;
+      btn.textContent = "Copied";
+      btn.classList.add("is-done");
+      setTimeout(() => {
+        btn.textContent = original;
+        btn.classList.remove("is-done");
+      }, 1600);
+    } catch {
+      btn.textContent = "Press Ctrl+C";
+      setTimeout(() => { btn.textContent = "Copy"; }, 1600);
+    }
+  });
+});
+</script>
+</body>
+</html>
