@@ -79,6 +79,10 @@ fastify.addContentTypeParser("*", { parseAs: "buffer" }, (_request, payload, don
 
 fastify.addHook("onRequest", requireApiKey);
 
+fastify.get("/", async () => {
+  return { message: "Fottly API is running. Docs: https://github.com/Noah-1919/Fottly" };
+});
+
 fastify.get("/health", async () => {
   return { status: "ok" };
 });

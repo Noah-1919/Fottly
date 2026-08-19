@@ -8,7 +8,7 @@ if (!API_KEY) {
   throw new Error("Missing API_KEY environment variable");
 }
 
-const PUBLIC_PATHS = new Set(["/health"]);
+const PUBLIC_PATHS = new Set(["/", "/health"]);
 // Image delivery (/t/...) is public on purpose: it's served from
 // <img src="..."> on real web pages, and browsers cannot send
 // Authorization headers on an <img> tag. This is the same model used by
