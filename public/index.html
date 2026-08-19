@@ -388,6 +388,34 @@
   .prose-card p:last-child { margin-bottom: 0; }
   .prose-card strong { color: var(--text); font-weight: 600; }
 
+  /* ---------- Cloud pricing ---------- */
+  .cloud-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: var(--r-card);
+    padding: var(--s8) var(--s6);
+    max-width: 400px;
+    text-align: center;
+  }
+  .cloud-price {
+    display: flex;
+    align-items: baseline;
+    justify-content: center;
+    gap: 4px;
+    margin-bottom: var(--s2);
+  }
+  .cloud-price-amount {
+    font-size: 40px;
+    font-weight: 600;
+    letter-spacing: -.02em;
+    color: var(--text);
+  }
+  .cloud-price-period { font-size: 15px; color: var(--muted); }
+  .cloud-price-note { font-size: 13.5px; color: var(--muted); margin: 0 0 var(--s6); }
+  .cloud-alt { font-size: 12.5px; color: var(--faint); margin: var(--s4) 0 0; }
+  .cloud-alt a { color: var(--muted); text-decoration: underline; text-underline-offset: 2px; transition: color .15s; }
+  .cloud-alt a:hover { color: var(--text); }
+
   /* ---------- Steps ---------- */
   /* Capped so step copy keeps a comfortable reading measure instead of
      running the full width of the container. */
@@ -459,6 +487,7 @@
       <a href="#features" class="nav-hide">Features</a>
       <a href="#api" class="nav-hide">URL API</a>
       <a href="#open-source" class="nav-hide">Open source</a>
+      <a href="#cloud" class="nav-hide">Cloud</a>
       <a href="https://github.com/Noah-1919/Fottly" class="btn btn-secondary btn-sm">GitHub</a>
     </div>
   </div>
@@ -722,6 +751,28 @@
           the clause that keeps the project from being closed up and resold as a black box.
         </p>
       </div>
+    </div>
+  </div>
+</section>
+
+<section id="cloud">
+  <div class="wrap">
+    <div class="section-intro">
+      <p class="eyebrow">Fottly Cloud</p>
+      <h2>Don't want to run the server yourself?</h2>
+      <p class="lead">
+        Same API, same URL syntax, zero infrastructure to maintain. We host Fottly for
+        you — point your app at your own subdomain and go.
+      </p>
+    </div>
+
+    <div class="cloud-card">
+      <div class="cloud-price">
+        <span class="cloud-price-amount">$29</span><span class="cloud-price-period">/month</span>
+      </div>
+      <p class="cloud-price-note">7-day free trial. Cancel anytime.</p>
+      <a href="https://buy.stripe.com/aFa8wQfo4dHgexUdVAbII00" target="_blank" rel="noopener noreferrer" class="btn btn-primary" style="width:100%;">Start free trial</a>
+      <p class="cloud-alt">Prefer to run it yourself? It's free and open-source — <a href="https://github.com/Noah-1919/Fottly">see the docs on GitHub</a>.</p>
     </div>
   </div>
 </section>
