@@ -190,7 +190,10 @@
     padding: 4px 12px;
   }
   .pill .dot { width: 6px; height: 6px; border-radius: 50%; background: var(--accent); flex: none; }
-  .hero-cta { display: flex; flex-wrap: wrap; gap: var(--s3); margin-bottom: var(--s12); }
+  .hero-cta { display: flex; flex-wrap: wrap; gap: var(--s3); margin-bottom: var(--s6); }
+  .hero-note { font-size: 13px; color: var(--faint); margin: 0 0 var(--s8); }
+  .hero-note a { color: var(--muted); text-decoration: underline; text-underline-offset: 2px; transition: color .15s; }
+  .hero-note a:hover { color: var(--text); }
 
   .hero-demo { margin-bottom: var(--s8); }
   .hero-demo img {
@@ -415,6 +418,31 @@
   .cloud-alt { font-size: 12.5px; color: var(--faint); margin: var(--s4) 0 0; }
   .cloud-alt a { color: var(--muted); text-decoration: underline; text-underline-offset: 2px; transition: color .15s; }
   .cloud-alt a:hover { color: var(--text); }
+  .cloud-fine { font-size: 11.5px; color: var(--faint); margin: var(--s3) 0 0; }
+
+  .cloud-grid {
+    display: grid;
+    grid-template-columns: 1fr minmax(280px, 360px);
+    gap: var(--s8);
+    align-items: start;
+    margin-bottom: var(--s12);
+  }
+  .cloud-list { list-style: none; margin: 0; padding: 0; display: grid; gap: var(--s3); }
+  .cloud-list li {
+    display: flex;
+    gap: var(--s3);
+    align-items: flex-start;
+    font-size: 14.5px;
+    color: var(--text);
+    line-height: 1.55;
+  }
+  .cloud-list li svg { flex: none; margin-top: 3px; }
+  .cloud-faq {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: var(--s4);
+  }
+  .cloud-faq .prose-card p { margin-bottom: 0; }
 
   /* ---------- Steps ---------- */
   /* Capped so step copy keeps a comfortable reading measure instead of
@@ -468,6 +496,7 @@
     section { padding: var(--s16) 0; }
     .hero { padding: var(--s16) 0 var(--s12); }
     .nav-links .nav-hide { display: none; }
+    .cloud-grid { grid-template-columns: 1fr; }
     h1 { max-width: none; }
     footer .wrap { flex-direction: column; align-items: flex-start; gap: var(--s3); }
   }
@@ -488,7 +517,8 @@
       <a href="#api" class="nav-hide">URL API</a>
       <a href="#open-source" class="nav-hide">Open source</a>
       <a href="#cloud" class="nav-hide">Cloud</a>
-      <a href="https://github.com/Noah-1919/Fottly" class="btn btn-secondary btn-sm">GitHub</a>
+      <a href="https://github.com/Noah-1919/Fottly" class="btn btn-secondary btn-sm nav-hide">GitHub</a>
+      <a href="https://buy.stripe.com/aFa8wQfo4dHgexUdVAbII00" target="_blank" rel="noopener noreferrer" class="btn btn-primary btn-sm">Start free trial</a>
     </div>
   </div>
 </nav>
@@ -519,6 +549,11 @@
       </a>
       <a href="demo.html" class="btn btn-secondary">Try the interactive demo</a>
     </div>
+
+    <p class="hero-note">
+      Prefer not to run a server? <a href="#cloud">Fottly Cloud</a> does it for you —
+      from $29/mo, with a 7-day free trial.
+    </p>
 
     <div class="hero-demo">
       <img src="assets/demo.gif" alt="Screen recording of the Fottly demo page: transforming an uploaded image through the URL API, including resizing, format conversion, and AI background removal">
@@ -766,13 +801,54 @@
       </p>
     </div>
 
-    <div class="cloud-card">
-      <div class="cloud-price">
-        <span class="cloud-price-amount">$29</span><span class="cloud-price-period">/month</span>
+    <div class="cloud-grid">
+      <ul class="cloud-list">
+        <li>
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m5 13 4 4L19 7"/></svg>
+          Same URL API as self-hosted — no code changes if you ever switch either way
+        </li>
+        <li>
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m5 13 4 4L19 7"/></svg>
+          Flat $29/month — no metering, no surprise invoices as traffic grows
+        </li>
+        <li>
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m5 13 4 4L19 7"/></svg>
+          Managed HTTPS, backups and updates — you never touch a server
+        </li>
+        <li>
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m5 13 4 4L19 7"/></svg>
+          Your own isolated instance and subdomain, not a shared multi-tenant pool
+        </li>
+        <li>
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m5 13 4 4L19 7"/></svg>
+          Same AGPL-3.0 engine underneath — nothing proprietary to get locked into
+        </li>
+      </ul>
+
+      <div class="cloud-card">
+        <div class="cloud-price">
+          <span class="cloud-price-amount">$29</span><span class="cloud-price-period">/month</span>
+        </div>
+        <p class="cloud-price-note">7-day free trial. Cancel anytime.</p>
+        <a href="https://buy.stripe.com/aFa8wQfo4dHgexUdVAbII00" target="_blank" rel="noopener noreferrer" class="btn btn-primary" style="width:100%;">Start free trial</a>
+        <p class="cloud-fine">Card required to start the trial — you're not charged for 7 days.</p>
+        <p class="cloud-alt">Prefer to run it yourself? It's free and open-source — <a href="https://github.com/Noah-1919/Fottly">see the docs on GitHub</a>.</p>
       </div>
-      <p class="cloud-price-note">7-day free trial. Cancel anytime.</p>
-      <a href="https://buy.stripe.com/aFa8wQfo4dHgexUdVAbII00" target="_blank" rel="noopener noreferrer" class="btn btn-primary" style="width:100%;">Start free trial</a>
-      <p class="cloud-alt">Prefer to run it yourself? It's free and open-source — <a href="https://github.com/Noah-1919/Fottly">see the docs on GitHub</a>.</p>
+    </div>
+
+    <div class="cloud-faq">
+      <div class="prose-card">
+        <h3>What happens after the trial?</h3>
+        <p>Your card is charged $29 automatically once the 7 days end. Cancel anytime before that from the Stripe billing portal and you won't be charged at all.</p>
+      </div>
+      <div class="prose-card">
+        <h3>Can I move to self-hosting later?</h3>
+        <p>Yes. Cloud runs the same open-source engine, so the same URL syntax works against your own server whenever you're ready — no rewrite, no lock-in.</p>
+      </div>
+      <div class="prose-card">
+        <h3>Where does my data live?</h3>
+        <p>On your own isolated Fottly instance and storage bucket, on EU infrastructure (Hetzner, Germany), reachable only over HTTPS.</p>
+      </div>
     </div>
   </div>
 </section>
