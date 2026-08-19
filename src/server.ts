@@ -79,7 +79,11 @@ fastify.addContentTypeParser("*", { parseAs: "buffer" }, (_request, payload, don
 
 fastify.addHook("onRequest", requireApiKey);
 
-fastify.get("/", async () => {
+fastify.get("/", async (_request, reply) => {
+  const redirectUrl = process.env.ROOT_REDIRECT_URL;
+  if (redirectUrl) {
+    return reply.redirect(redirectUrl);
+  }
   return { message: "Fottly API is running. Docs: https://github.com/Noah-1919/Fottly" };
 });
 
