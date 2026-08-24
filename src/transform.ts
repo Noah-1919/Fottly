@@ -16,7 +16,7 @@ type WatermarkGravity = (typeof WATERMARK_GRAVITIES)[number];
 export interface ParsedTransform {
   width?: number;
   height?: number;
-  format?: "webp" | "avif" | "jpeg" | "png";
+  format?: "webp" | "avif" | "jpeg" | "png" | "tiff";
   quality?: number;
   bgRemove?: boolean;
   crop?: "fill" | "fit";
@@ -24,6 +24,8 @@ export interface ParsedTransform {
   watermarkGravity?: WatermarkGravity;
   watermarkScale?: number;
   watermarkOpacity?: number;
+  rotate?: number;
+  grayscale?: boolean;
 }
 
 /**
@@ -36,6 +38,11 @@ export function parseTransformString(raw: string): ParsedTransform {
   for (const part of raw.split(",")) {
     if (part === "bg_remove") {
       result.bgRemove = true;
+      continue;
+    }
+
+    if (part === "grayscale") {
+      result.grayscale = true;
       continue;
     }
 
@@ -55,7 +62,7 @@ export function parseTransformString(raw: string): ParsedTransform {
         result.height = parseInt(value, 10);
         break;
       case "f":
-        if (["webp", "avif", "jpeg", "png"].includes(value)) {
+        if (["webp", "avif", "jpeg", "png", "tiff"].includes(value)) {
           result.format = value as ParsedTransform["format"];
         }
         break;
@@ -72,6 +79,16 @@ export function parseTransformString(raw: string): ParsedTransform {
           result.crop = value;
         }
         break;
+      case "r": {
+        // Rotation, in degrees clockwise. Not restricted to 90/180/270 —
+        // Sharp supports arbitrary angles (see applyTransform for how the
+        // corners exposed by a non-90°-multiple rotation are filled).
+        const rotate = parseInt(value, 10);
+        if (!Number.isNaN(rotate)) {
+          result.rotate = rotate;
+        }
+        break;
+      }
       case "wm":
         result.watermark = value;
         break;
@@ -133,6 +150,19 @@ export async function applyTransform(
 ): Promise<{ buffer: Buffer; contentType: string }> {
   let pipeline = sharp(input);
 
+  if (transform.rotate !== undefined) {
+    // For multiples of 90° this is lossless and exact (no exposed corners).
+    // For any other angle, Sharp fills the corners exposed by the rotation
+    // with a background color — we use fully transparent (r:0,g:0,b:0,a:0),
+    // consistent with how bg_remove already handles transparency: it shows
+    // up as-is on webp/png (alpha-capable formats) and gets flattened to
+    // black on jpeg (which has no alpha channel), same as bg_remove's
+    // documented behavior.
+    pipeline = pipeline.rotate(transform.rotate, {
+      background: { r: 0, g: 0, b: 0, alpha: 0 },
+    });
+  }
+
   if (transform.width || transform.height) {
     // c_fill (default): crops to fill exactly w x h.
     // c_fit: keeps the whole image, fitting it within w x h.
@@ -175,6 +205,10 @@ export async function applyTransform(
     ]);
   }
 
+  if (transform.grayscale) {
+    pipeline = pipeline.greyscale();
+  }
+
   const format = transform.format ?? "webp";
   const quality = transform.quality ?? 80;
 
@@ -190,6 +224,9 @@ export async function applyTransform(
       break;
     case "png":
       pipeline = pipeline.png();
+      break;
+    case "tiff":
+      pipeline = pipeline.tiff({ quality });
       break;
   }
 

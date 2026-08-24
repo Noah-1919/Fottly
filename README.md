@@ -153,8 +153,10 @@ URL transformation syntax (same idea as Cloudinary/Openinary):
 
 - `w_400` — width in pixels
 - `h_300` — height in pixels
-- `f_webp` — output format (`webp`, `avif`, `jpeg`, `png`)
+- `f_webp` — output format (`webp`, `avif`, `jpeg`, `png`, `tiff`)
 - `q_80` — quality (0-100)
+- `r_90` — rotation in degrees, clockwise (see [Rotation](#rotation-r_) below)
+- `grayscale` — converts the image to grayscale (simple flag, no value)
 
 They can be combined, separated by commas: `w_800,h_600,f_avif,q_75`.
 
@@ -165,6 +167,32 @@ They can be combined, separated by commas: `w_800,h_600,f_avif,q_75`.
 
 ```bash
 curl "http://localhost:3000/t/w_300,h_300,c_fit,f_webp/your-image.jpg" -o result-fit.webp
+```
+
+### Rotation (`r_`)
+
+Add `r_<degrees>` to rotate the image clockwise by that many degrees.
+`r_90`, `r_180`, and `r_270` are the common cases and are lossless/exact —
+no part of the canvas is exposed. Arbitrary angles are also supported
+(e.g. `r_45`); in that case the corners exposed by the rotation are filled
+with a **fully transparent** background, the same convention already used
+by `bg_remove`: it comes through as real transparency on alpha-capable
+formats (`webp`, `png`, `tiff`), and gets flattened to black on `jpeg`
+(which has no alpha channel).
+
+```bash
+curl "http://localhost:3000/t/r_90,f_webp/photo.jpg" -o rotated.webp
+```
+
+Rotation happens before resize/crop, so it combines normally with `w_`/`h_`/`c_`/`f_`.
+
+### Grayscale (`grayscale`)
+
+Add the `grayscale` flag (no value, same style as `bg_remove`) to convert
+the image to grayscale.
+
+```bash
+curl "http://localhost:3000/t/w_400,grayscale,f_webp/photo.jpg" -o gray.webp
 ```
 
 ### Background removal (`bg_remove`)
