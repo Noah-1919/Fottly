@@ -12,28 +12,64 @@ import {
 // S3-compatible storage (AWS S3 / Cloudflare R2 / MinIO).
 // All configuration comes from environment variables so you can point at
 // a different provider without touching code.
-const endpoint = process.env.S3_ENDPOINT;
-const region = process.env.S3_REGION ?? "us-east-1";
-const bucket = process.env.S3_BUCKET;
-const accessKeyId = process.env.S3_ACCESS_KEY_ID;
-const secretAccessKey = process.env.S3_SECRET_ACCESS_KEY;
-const forcePathStyle = process.env.S3_FORCE_PATH_STYLE !== "false";
+//
+// The client is built lazily, on first use, instead of at import time.
+// That's deliberate: POST /transform/:transforms takes the image in the
+// request body and never touches the bucket, so a self-hoster who only
+// wants that endpoint can run Fottly with no S3 configuration at all.
+// Configuring it at import time would make the process fail to boot
+// without S3_BUCKET, which would defeat the point.
 
-if (!bucket) {
-  throw new Error("Missing S3_BUCKET environment variable");
+// Thrown when an S3-backed route is used on an instance that has no
+// storage configured. Routes map it to 503.
+export class StorageNotConfiguredError extends Error {
+  constructor() {
+    super(
+      "S3 storage is not configured on this instance. Set S3_BUCKET (and the " +
+        "matching credentials) to use the bucket-backed routes, or use " +
+        "POST /transform/:transforms to send the image directly in the request.",
+    );
+    this.name = "StorageNotConfiguredError";
+  }
 }
 
-export const BUCKET = bucket;
+interface Storage {
+  client: S3Client;
+  bucket: string;
+}
 
-const client = new S3Client({
-  endpoint,
-  region,
-  forcePathStyle,
-  credentials:
-    accessKeyId && secretAccessKey
-      ? { accessKeyId, secretAccessKey }
-      : undefined,
-});
+let cached: Storage | undefined;
+
+// Whether this instance has a bucket configured. Routes use it to answer
+// with a clear 503 instead of failing deeper in the AWS SDK.
+export function isStorageConfigured(): boolean {
+  return Boolean(process.env.S3_BUCKET);
+}
+
+function storage(): Storage {
+  if (cached) return cached;
+
+  const bucket = process.env.S3_BUCKET;
+  if (!bucket) {
+    throw new StorageNotConfiguredError();
+  }
+
+  const client = new S3Client({
+    endpoint: process.env.S3_ENDPOINT,
+    region: process.env.S3_REGION ?? "us-east-1",
+    forcePathStyle: process.env.S3_FORCE_PATH_STYLE !== "false",
+    credentials:
+      process.env.S3_ACCESS_KEY_ID && process.env.S3_SECRET_ACCESS_KEY
+        ? {
+            accessKeyId: process.env.S3_ACCESS_KEY_ID,
+            secretAccessKey: process.env.S3_SECRET_ACCESS_KEY,
+          }
+        : undefined,
+  });
+
+  cached = { client, bucket };
+  return cached;
+}
 
 async function streamToBuffer(stream: unknown): Promise<Buffer> {
   const chunks: Buffer[] = [];
@@ -44,6 +80,7 @@ async function streamToBuffer(stream: unknown): Promise<Buffer> {
 }
 
 export async function objectExists(key: string): Promise<boolean> {
+  const { client, bucket } = storage();
   try {
     await client.send(new HeadObjectCommand({ Bucket: bucket, Key: key }));
     return true;
@@ -58,6 +95,7 @@ export async function objectExists(key: string): Promise<boolean> {
 }
 
 export async function getObject(key: string): Promise<Buffer> {
+  const { client, bucket } = storage();
   const response = await client.send(
     new GetObjectCommand({ Bucket: bucket, Key: key }),
   );
@@ -70,6 +108,7 @@ export async function getObject(key: string): Promise<Buffer> {
 export async function getObjectWithContentType(
   key: string,
 ): Promise<{ buffer: Buffer; contentType?: string }> {
+  const { client, bucket } = storage();
   const response = await client.send(
     new GetObjectCommand({ Bucket: bucket, Key: key }),
   );
@@ -82,6 +121,7 @@ export async function putObject(
   body: Buffer,
   contentType?: string,
 ): Promise<void> {
+  const { client, bucket } = storage();
   await client.send(
     new PutObjectCommand({
       Bucket: bucket,
@@ -93,12 +133,14 @@ export async function putObject(
 }
 
 export async function deleteObject(key: string): Promise<void> {
+  const { client, bucket } = storage();
   await client.send(new DeleteObjectCommand({ Bucket: bucket, Key: key }));
 }
 
 // Copies an object within the same bucket (used for rename/move: copy to
 // the destination and then delete the source).
 export async function copyObject(sourceKey: string, destKey: string): Promise<void> {
+  const { client, bucket } = storage();
   await client.send(
     new CopyObjectCommand({
       Bucket: bucket,
@@ -110,6 +152,7 @@ export async function copyObject(sourceKey: string, destKey: string): Promise<vo
 
 // Lists all keys under a prefix (paginating as needed).
 export async function listKeys(prefix: string): Promise<string[]> {
+  const { client, bucket } = storage();
   const keys: string[] = [];
   let continuationToken: string | undefined;
 

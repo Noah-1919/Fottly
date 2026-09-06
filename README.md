@@ -18,25 +18,40 @@
 Already tested and working: resizes, converts format, removes backgrounds,
 and caches the result so the same request is never processed twice.
 
-Source images and the result cache are read/written from S3-compatible
-storage (AWS S3, Cloudflare R2, MinIO...), configured via environment
-variables.
+There are two ways to get an image in and out:
+
+- **Direct upload** — `POST /transform/...` with the image in the request
+  body, and the transformed image comes straight back in the response. No
+  storage to set up: useful for one-off/on-demand transformations, and the
+  quickest way to try Fottly. See
+  [Direct upload](#transform-an-image-without-s3-direct-upload).
+- **Bucket-backed delivery** — `GET /t/...` reads source images from
+  S3-compatible storage (AWS S3, Cloudflare R2, MinIO...) and caches the
+  result there, so the same request is never processed twice. This is the
+  mode to use for `<img src="...">` on a real site.
+
+Both run the same transformation pipeline. S3 configuration is only needed
+for the second one: with no `S3_BUCKET` set, Fottly still starts and serves
+direct uploads, and the bucket-backed routes answer `503`.
 
 There's a browsable demo page at [`demo.html`](demo.html) — open it in a
 browser with the stack running to build transformation URLs interactively.
 
 ## Environment variables
 
+All the `S3_*` variables are **optional**: leave them unset to run Fottly
+with direct uploads only.
+
 | Variable | Description | Example (local MinIO) |
 | --- | --- | --- |
 | `S3_ENDPOINT` | S3 endpoint URL. Leave empty for real AWS S3. | `http://localhost:9000` |
 | `S3_REGION` | Region. | `us-east-1` |
-| `S3_BUCKET` | Bucket where source images and the cache (`cache/...`) live. | `fottly` |
+| `S3_BUCKET` | Bucket where source images and the cache (`cache/...`) live. Unset it to disable the bucket-backed routes. | `fottly` |
 | `S3_ACCESS_KEY_ID` | Access key. | `minioadmin` |
 | `S3_SECRET_ACCESS_KEY` | Secret key. | `minioadmin` |
 | `S3_FORCE_PATH_STYLE` | `true` for MinIO/backends without virtual-hosted style. `false` on real AWS S3. | `true` |
 | `API_KEY` | Key required for authentication (see the Authentication section below). | `dev-secret-key` |
-| `MAX_UPLOAD_SIZE_MB` | Maximum request body size, in megabytes (applies to file uploads). | `25` |
+| `MAX_UPLOAD_SIZE_MB` | Maximum request body size, in megabytes. Applies to `POST /files/...` and to direct uploads. | `25` |
 | `RATE_LIMIT_MAX` | Maximum requests per IP within the time window (see Rate limiting below). | `100` |
 | `RATE_LIMIT_WINDOW_MS` | Rate limit time window, in milliseconds. | `60000` |
 
@@ -60,6 +75,7 @@ it's a single shared key.
 | --- | --- |
 | `GET /health` | Public |
 | `GET /t/...` (image delivery/transformation) | **Public** |
+| `POST /transform/...` (direct upload) | Requires `Authorization` |
 | `POST /files/...`, `DELETE /files/...`, `PUT /files/...` (upload/delete/rename) | Requires `Authorization` |
 
 **Why `/t/...` is public:** these images are meant to be used in
@@ -74,6 +90,75 @@ in this MVP yet.
 
 No header on `/files/...`, or a key that doesn't match → `401` with an
 error message explaining why.
+
+**Why direct upload is not public:** unlike `/t/...`, `POST /transform/...`
+isn't something an `<img>` tag can call, so the reason for making delivery
+public doesn't apply. It also does real work per request (decoding,
+resizing, and possibly a Rembg pass), so leaving it open would hand anyone
+a free CPU-and-GPU-time faucet.
+
+## Transform an image without S3 (direct upload)
+
+Send the image in the request and get the transformed image back in the
+response. Nothing is stored on either end, so this works with no bucket
+configured at all:
+
+```bash
+curl -X POST \
+  -H "Authorization: Bearer dev-secret-key" \
+  -F "file=@your-image.jpg" \
+  "http://localhost:3000/transform/w_400,h_300,f_webp" \
+  -o result.webp
+```
+
+The transform segment uses exactly the same syntax as `/t/...`
+(`w_`, `h_`, `f_`, `q_`, `c_`, `r_`, `grayscale`, `bg_remove`), and runs the
+same pipeline. Background removal works here too:
+
+```bash
+curl -X POST \
+  -H "Authorization: Bearer dev-secret-key" \
+  -F "file=@product.jpg" \
+  "http://localhost:3000/transform/bg_remove,w_800,f_png" \
+  -o cutout.png
+```
+
+The image goes in a field named `file`. Because `wm_` refers to a key in
+the bucket, a watermark for a direct upload travels as a second file field
+named `watermark` instead — the `wg_`/`ws_`/`wo_` options still apply:
+
+```bash
+curl -X POST \
+  -H "Authorization: Bearer dev-secret-key" \
+  -F "file=@your-image.jpg" \
+  -F "watermark=@logo.png" \
+  "http://localhost:3000/transform/w_800,wg_southeast,ws_25" \
+  -o watermarked.webp
+```
+
+Responses:
+
+| Status | When |
+| --- | --- |
+| `200` | The transformed image, as binary, with the matching `Content-Type`. |
+| `400` | No `file` field, or a file Sharp can't decode as an image. |
+| `413` | Larger than `MAX_UPLOAD_SIZE_MB` (25 MB by default). |
+| `415` | The request wasn't `multipart/form-data`. |
+| `502` | Background removal was requested and Rembg failed or was unreachable. |
+
+Two differences from `/t/...` worth knowing about:
+
+- **No caching.** The cache lives in the bucket and is keyed by filename,
+  and there's no filename here. Every request is processed from scratch.
+- **No passthrough.** `/t/...` serves files it can't decode (PDFs, audio,
+  animated GIFs) as-is, because a bucket holds more than images. On a
+  direct upload that would just hand you back your own file with a `200`,
+  so an undecodable upload gets a `400` instead. Animated GIFs and PDFs
+  therefore need the bucket-backed route.
+
+Uploads are capped at `MAX_UPLOAD_SIZE_MB`. Anything over it is refused
+with a `413` while it's still arriving — the file is never accumulated in
+memory past the limit.
 
 ## Try it locally with Docker Compose (recommended)
 
@@ -121,8 +206,11 @@ mc cp your-image.jpg local/fottly/your-image.jpg
 npm install
 ```
 
-You need accessible S3-compatible storage (for example, the MinIO from
-`docker-compose.yml`, started with `docker compose up minio createbuckets`).
+For the bucket-backed routes (`/t/...`, `/files/...`) you need accessible
+S3-compatible storage — for example, the MinIO from `docker-compose.yml`,
+started with `docker compose up minio createbuckets`. To use direct uploads
+only, skip it: set just `API_KEY` and the server will start without any
+`S3_*` variables.
 Copy `.env.example` to `.env`, adjust values if needed, and export the
 variables before starting the server:
 
@@ -343,6 +431,7 @@ deleting or renaming a file can wipe all of its derived cache in one go
 - [x] Phase 2: API key authentication — `Authorization: Bearer <API_KEY>` header on `/files/...` (management); `/health` and `/t/...` (delivery) are public
 - [x] Phase 3: AI background removal (Rembg) — `bg_remove` URL parameter, internal service via Docker Compose
 - [x] Phase 4: crop mode (`c_fill`/`c_fit`), file management (upload/delete/rename with cache invalidation), watermark (`wm_`), passthrough for unsupported/animated formats
+- [x] Phase 5: direct upload/download (`POST /transform/...`) — transform an image without any S3 bucket; S3 configuration is now optional
 - [x] Phase 5: stability hardening — file upload endpoint, request size limit (`MAX_UPLOAD_SIZE_MB`), per-IP rate limiting, real `rembg` healthcheck
 
 ## License

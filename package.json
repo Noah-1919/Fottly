@@ -1,6 +1,6 @@
 {
   "name": "fottly",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "Fottly — self-hosted image transformation service with built-in AI background removal (open-source Cloudinary alternative)",
   "main": "dist/server.js",
   "type": "module",
@@ -13,6 +13,7 @@
   "dependencies": {
     "@aws-sdk/client-s3": "^3.635.0",
     "@fastify/cors": "^9.0.1",
+    "@fastify/multipart": "^8.3.1",
     "@fastify/rate-limit": "^9.1.0",
     "fastify": "^4.28.1",
     "sharp": "^0.33.4"
