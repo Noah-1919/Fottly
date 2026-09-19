@@ -420,14 +420,10 @@
   .cloud-alt a:hover { color: var(--text); }
   .cloud-fine { font-size: 11.5px; color: var(--faint); margin: var(--s3) 0 0; }
 
-  .cloud-grid {
-    display: grid;
-    grid-template-columns: 1fr minmax(280px, 360px);
-    gap: var(--s8);
-    align-items: start;
-    margin-bottom: var(--s12);
+  .cloud-list {
+    list-style: none; margin: 0 0 var(--s12); padding: 0; display: grid; gap: var(--s3);
+    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
   }
-  .cloud-list { list-style: none; margin: 0; padding: 0; display: grid; gap: var(--s3); }
   .cloud-list li {
     display: flex;
     gap: var(--s3);
@@ -437,6 +433,52 @@
     line-height: 1.55;
   }
   .cloud-list li svg { flex: none; margin-top: 3px; }
+
+  /* ---------- Cloud pricing: 3-plan grid ---------- */
+  .cloud-pricing-banner {
+    text-align: center;
+    font-size: 13.5px;
+    color: var(--muted);
+    margin: 0 0 var(--s6);
+  }
+  .cloud-pricing-banner strong { color: var(--text); }
+  .cloud-pricing-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+    gap: var(--s6);
+    align-items: stretch;
+    margin-bottom: var(--s12);
+  }
+  .cloud-pricing-grid .cloud-card { max-width: none; display: flex; flex-direction: column; }
+  .cloud-card-popular {
+    border-color: var(--accent);
+    box-shadow: 0 0 0 1px var(--accent);
+    position: relative;
+  }
+  .cloud-card-badge {
+    display: inline-block;
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: .02em;
+    text-transform: uppercase;
+    color: #fff;
+    background: var(--accent);
+    border-radius: 999px;
+    padding: 3px 10px;
+    margin-bottom: var(--s3);
+  }
+  .cloud-plan-name { font-size: 15px; font-weight: 600; color: var(--text); margin: 0 0 var(--s3); }
+  .cloud-plan-list {
+    list-style: none; margin: var(--s4) 0 var(--s6); padding: 0;
+    display: grid; gap: var(--s2);
+    text-align: left;
+    flex: 1;
+  }
+  .cloud-plan-list li {
+    display: flex; gap: 8px; align-items: flex-start;
+    font-size: 13.5px; color: var(--muted); line-height: 1.5;
+  }
+  .cloud-plan-list li svg { flex: none; margin-top: 3px; }
   .cloud-faq {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
@@ -496,7 +538,6 @@
     section { padding: var(--s16) 0; }
     .hero { padding: var(--s16) 0 var(--s12); }
     .nav-links .nav-hide { display: none; }
-    .cloud-grid { grid-template-columns: 1fr; }
     h1 { max-width: none; }
     footer .wrap { flex-direction: column; align-items: flex-start; gap: var(--s3); }
   }
@@ -518,7 +559,7 @@
       <a href="#open-source" class="nav-hide">Open source</a>
       <a href="#cloud" class="nav-hide">Cloud</a>
       <a href="https://github.com/Noah-1919/Fottly" class="btn btn-secondary btn-sm nav-hide">GitHub</a>
-      <a href="https://buy.stripe.com/4gMcN64Jq32CexU18ObII03?prefilled_promo_code=FOUNDER15" target="_blank" rel="noopener noreferrer" class="btn btn-primary btn-sm">Start free trial</a>
+      <a href="#cloud" class="btn btn-primary btn-sm">Start free trial</a>
     </div>
   </div>
 </nav>
@@ -552,7 +593,7 @@
 
     <p class="hero-note">
       Prefer not to run a server? <a href="#cloud">Fottly Cloud</a> does it for you —
-      from €19/mo for our first 15 founding customers, with a 7-day free trial.
+      from €17,40/mo for our first 20 founding customers, with a 7-day free trial.
     </p>
 
     <div class="hero-demo">
@@ -801,48 +842,88 @@
       </p>
     </div>
 
-    <div class="cloud-grid">
-      <ul class="cloud-list">
-        <li>
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m5 13 4 4L19 7"/></svg>
-          Same URL API as self-hosted — no code changes if you ever switch either way
-        </li>
-        <li>
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m5 13 4 4L19 7"/></svg>
-          Flat monthly pricing — no metering, no surprise invoices as traffic grows
-        </li>
-        <li>
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m5 13 4 4L19 7"/></svg>
-          Managed HTTPS, backups and updates — you never touch a server
-        </li>
-        <li>
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m5 13 4 4L19 7"/></svg>
-          Your own isolated instance and subdomain, not a shared multi-tenant pool
-        </li>
-        <li>
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m5 13 4 4L19 7"/></svg>
-          Same AGPL-3.0 engine underneath — nothing proprietary to get locked into
-        </li>
-      </ul>
+    <ul class="cloud-list">
+      <li>
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m5 13 4 4L19 7"/></svg>
+        Same URL API as self-hosted — no code changes if you ever switch either way
+      </li>
+      <li>
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m5 13 4 4L19 7"/></svg>
+        Flat monthly pricing — no metering, no surprise invoices as traffic grows
+      </li>
+      <li>
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m5 13 4 4L19 7"/></svg>
+        Managed HTTPS, backups and updates — you never touch a server
+      </li>
+      <li>
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m5 13 4 4L19 7"/></svg>
+        Your own isolated instance and subdomain, not a shared multi-tenant pool
+      </li>
+      <li>
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m5 13 4 4L19 7"/></svg>
+        Same AGPL-3.0 engine underneath — nothing proprietary to get locked into
+      </li>
+    </ul>
+
+    <p class="cloud-pricing-banner"><strong>Founding customer pricing</strong> — 40% off, locked in forever, for our first 20 customers on any plan.</p>
+
+    <div class="cloud-pricing-grid">
+      <div class="cloud-card">
+        <p class="cloud-plan-name">Starter</p>
+        <div class="cloud-price">
+          <span style="font-size:18px;color:var(--muted);text-decoration:line-through;">€29</span>
+          <span class="cloud-price-amount">€17,40</span><span class="cloud-price-period">/month</span>
+        </div>
+        <p class="cloud-price-note">Up to 10,000 images/month.</p>
+        <ul class="cloud-plan-list">
+          <li><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m5 13 4 4L19 7"/></svg> Up to 10,000 images/month</li>
+          <li><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m5 13 4 4L19 7"/></svg> Your own isolated instance</li>
+          <li><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m5 13 4 4L19 7"/></svg> Email support</li>
+        </ul>
+        <a href="https://buy.stripe.com/6oUeVe6RydHg9dAcRwbII04?prefilled_promo_code=FOUNDER40" target="_blank" rel="noopener noreferrer" class="btn btn-primary" style="width:100%;">Start free trial</a>
+        <p class="cloud-fine">Card required to start the trial — you're not charged for 7 days.</p>
+      </div>
+
+      <div class="cloud-card cloud-card-popular">
+        <span class="cloud-card-badge">Most popular</span>
+        <p class="cloud-plan-name">Growth</p>
+        <div class="cloud-price">
+          <span style="font-size:18px;color:var(--muted);text-decoration:line-through;">€90</span>
+          <span class="cloud-price-amount">€54</span><span class="cloud-price-period">/month</span>
+        </div>
+        <p class="cloud-price-note">Up to 40,000 images/month.</p>
+        <ul class="cloud-plan-list">
+          <li><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m5 13 4 4L19 7"/></svg> Up to 40,000 images/month</li>
+          <li><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m5 13 4 4L19 7"/></svg> Your own isolated instance</li>
+          <li><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m5 13 4 4L19 7"/></svg> Priority email support</li>
+        </ul>
+        <a href="https://buy.stripe.com/5kQfZigs832C3Tg8BgbII05?prefilled_promo_code=FOUNDER40" target="_blank" rel="noopener noreferrer" class="btn btn-primary" style="width:100%;">Start free trial</a>
+        <p class="cloud-fine">Card required to start the trial — you're not charged for 7 days.</p>
+      </div>
 
       <div class="cloud-card">
-        <p class="eyebrow" style="margin-bottom:var(--s2);">First 15 founding customers</p>
+        <p class="cloud-plan-name">Business</p>
         <div class="cloud-price">
-          <span style="font-size:20px;color:var(--muted);text-decoration:line-through;">€29</span>
-          <span class="cloud-price-amount">€19</span><span class="cloud-price-period">/month</span>
+          <span style="font-size:18px;color:var(--muted);text-decoration:line-through;">€200</span>
+          <span class="cloud-price-amount">€120</span><span class="cloud-price-period">/month</span>
         </div>
-        <p class="cloud-price-note">Locked in forever. 7-day free trial. Cancel anytime.</p>
-        <a href="https://buy.stripe.com/4gMcN64Jq32CexU18ObII03?prefilled_promo_code=FOUNDER15" target="_blank" rel="noopener noreferrer" class="btn btn-primary" style="width:100%;">Start free trial</a>
-        <p class="cloud-fine">Setup within 24 hours — we'll email you your server URL, API key, and a link to your own interactive editor.</p>
+        <p class="cloud-price-note">Up to 100,000 images/month.</p>
+        <ul class="cloud-plan-list">
+          <li><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m5 13 4 4L19 7"/></svg> Up to 100,000 images/month</li>
+          <li><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m5 13 4 4L19 7"/></svg> Your own isolated instance, sized for volume</li>
+          <li><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m5 13 4 4L19 7"/></svg> Priority support</li>
+        </ul>
+        <a href="https://buy.stripe.com/bJefZi5Nu32C61obNsbII06?prefilled_promo_code=FOUNDER40" target="_blank" rel="noopener noreferrer" class="btn btn-primary" style="width:100%;">Start free trial</a>
         <p class="cloud-fine">Card required to start the trial — you're not charged for 7 days.</p>
-        <p class="cloud-alt">Prefer to run it yourself? It's free and open-source — <a href="https://github.com/Noah-1919/Fottly">see the docs on GitHub</a>.</p>
       </div>
     </div>
+
+    <p class="cloud-alt" style="text-align:center;margin-bottom:var(--s12);">Prefer to run it yourself? It's free and open-source — <a href="https://github.com/Noah-1919/Fottly">see the docs on GitHub</a>.</p>
 
     <div class="cloud-faq">
       <div class="prose-card">
         <h3>What happens after the trial?</h3>
-        <p>Your card is charged automatically once the 7 days end, at the rate shown at signup (€19/mo for founding customers, locked in forever). Cancel anytime before that from your <a href="https://billing.stripe.com/p/login/aFa8wQfo4dHgexUdVAbII00">billing portal</a> and you won't be charged at all.</p>
+        <p>Your card is charged automatically once the 7 days end, at the plan and rate shown at signup — locked in forever for founding customers. Cancel anytime before that from your <a href="https://billing.stripe.com/p/login/aFa8wQfo4dHgexUdVAbII00">billing portal</a> and you won't be charged at all.</p>
       </div>
       <div class="prose-card">
         <h3>Can I move to self-hosting later?</h3>
