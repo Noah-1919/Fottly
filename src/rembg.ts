@@ -37,7 +37,13 @@ export async function removeBackground(input: Buffer): Promise<Buffer> {
   const formData = new FormData();
   formData.append("file", new Blob([new Uint8Array(capped)]), "input");
   formData.append("model", REMBG_MODEL);
-  formData.append("a", "true"); // alpha matting: improves fine edges
+  // Alpha matting is disabled: with the current rembg image and the
+  // REMBG_MAX_DIMENSION=1600 cap, "a=true" produces badly corrupted output
+  // (a smeared/ghosted image instead of a clean cutout) instead of just
+  // "worse edges". Confirmed 2026-09-19 by comparing the same images with
+  // a=true vs a=false directly against the Rembg service. Re-enable only
+  // after root-causing why alpha matting breaks on this setup.
+  formData.append("a", "false");
 
   let response: Response;
   try {
