@@ -12,6 +12,12 @@
 ---
 
 <p align="center">
+  <strong>Don't want to run a server?</strong>
+  <a href="https://fottly.com/#cloud">Fottly Cloud</a> hosts it for you —
+  same API, flat pricing, 7-day free trial.
+</p>
+
+<p align="center">
   <img src="assets/demo.gif" alt="Fottly demo: transforming an image through the URL API" width="800">
 </p>
 
