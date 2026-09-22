@@ -100,6 +100,8 @@
     transition: color .15s;
   }
   .nav-links a:hover { color: var(--text); }
+  .nav-links a.btn-primary,
+  .nav-links a.btn-primary:hover { color: #0d1117; }
 
   /* ---------- Buttons ---------- */
   .btn {
@@ -420,14 +422,10 @@
   .cloud-alt a:hover { color: var(--text); }
   .cloud-fine { font-size: 11.5px; color: var(--faint); margin: var(--s3) 0 0; }
 
-  .cloud-grid {
-    display: grid;
-    grid-template-columns: 1fr minmax(280px, 360px);
-    gap: var(--s8);
-    align-items: start;
-    margin-bottom: var(--s12);
+  .cloud-list {
+    list-style: none; margin: 0 0 var(--s12); padding: 0; display: grid; gap: var(--s3);
+    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
   }
-  .cloud-list { list-style: none; margin: 0; padding: 0; display: grid; gap: var(--s3); }
   .cloud-list li {
     display: flex;
     gap: var(--s3);
@@ -437,10 +435,62 @@
     line-height: 1.55;
   }
   .cloud-list li svg { flex: none; margin-top: 3px; }
+
+  /* ---------- Cloud pricing: 3-plan grid ---------- */
+  .cloud-pricing-banner {
+    text-align: center;
+    font-size: 13.5px;
+    color: var(--muted);
+    margin: 0 0 var(--s6);
+  }
+  .cloud-pricing-banner strong { color: var(--text); }
+  .cloud-pricing-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: var(--s6);
+    align-items: stretch;
+    margin-bottom: var(--s12);
+  }
+  @media (max-width: 900px) {
+    .cloud-pricing-grid { grid-template-columns: 1fr; }
+  }
+  .cloud-pricing-grid .cloud-card { max-width: none; display: flex; flex-direction: column; }
+  .cloud-card-popular {
+    border-color: var(--accent);
+    box-shadow: 0 0 0 1px var(--accent);
+    position: relative;
+  }
+  .cloud-card-badge {
+    display: inline-block;
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: .02em;
+    text-transform: uppercase;
+    color: #fff;
+    background: var(--accent);
+    border-radius: 999px;
+    padding: 3px 10px;
+    margin-bottom: var(--s3);
+  }
+  .cloud-plan-name { font-size: 15px; font-weight: 600; color: var(--text); margin: 0 0 var(--s3); }
+  .cloud-plan-list {
+    list-style: none; margin: var(--s4) 0 var(--s6); padding: 0;
+    display: grid; gap: var(--s2);
+    text-align: left;
+    flex: 1;
+  }
+  .cloud-plan-list li {
+    display: flex; gap: 8px; align-items: flex-start;
+    font-size: 13.5px; color: var(--muted); line-height: 1.5;
+  }
+  .cloud-plan-list li svg { flex: none; margin-top: 3px; }
   .cloud-faq {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    grid-template-columns: repeat(3, 1fr);
     gap: var(--s4);
+  }
+  @media (max-width: 900px) {
+    .cloud-faq { grid-template-columns: 1fr; }
   }
   .cloud-faq .prose-card p { margin-bottom: 0; }
 
@@ -492,11 +542,23 @@
   .footer-links a:hover { color: var(--text); }
   .footer-note { color: var(--faint); font-size: 13px; }
 
+  /* ---------- Scroll reveal ---------- */
+  html.js-reveal .reveal {
+    opacity: 0;
+    transform: translateY(18px);
+    transition: opacity .6s cubic-bezier(.16,.84,.44,1), transform .6s cubic-bezier(.16,.84,.44,1);
+    transition-delay: calc(var(--d, 0) * 80ms);
+    will-change: opacity, transform;
+  }
+  html.js-reveal .reveal.is-visible {
+    opacity: 1;
+    transform: translateY(0);
+  }
+
   @media (max-width: 720px) {
     section { padding: var(--s16) 0; }
     .hero { padding: var(--s16) 0 var(--s12); }
     .nav-links .nav-hide { display: none; }
-    .cloud-grid { grid-template-columns: 1fr; }
     h1 { max-width: none; }
     footer .wrap { flex-direction: column; align-items: flex-start; gap: var(--s3); }
   }
@@ -518,7 +580,7 @@
       <a href="#open-source" class="nav-hide">Open source</a>
       <a href="#cloud" class="nav-hide">Cloud</a>
       <a href="https://github.com/Noah-1919/Fottly" class="btn btn-secondary btn-sm nav-hide">GitHub</a>
-      <a href="https://buy.stripe.com/4gMcN64Jq32CexU18ObII03?prefilled_promo_code=FOUNDER15" target="_blank" rel="noopener noreferrer" class="btn btn-primary btn-sm">Start free trial</a>
+      <a href="#cloud" class="btn btn-primary btn-sm">Start free trial</a>
     </div>
   </div>
 </nav>
@@ -552,7 +614,7 @@
 
     <p class="hero-note">
       Prefer not to run a server? <a href="#cloud">Fottly Cloud</a> does it for you —
-      from €19/mo for our first 15 founding customers, with a 7-day free trial.
+      from €17,40/mo for our first 20 founding customers, with a 7-day free trial.
     </p>
 
     <div class="hero-demo">
@@ -574,7 +636,7 @@
 
 <section id="problem">
   <div class="wrap">
-    <div class="section-intro">
+    <div class="section-intro reveal">
       <p class="eyebrow">The problem</p>
       <h2>Closed image CDNs bill you for traffic you don't control.</h2>
       <p class="lead">
@@ -586,7 +648,7 @@
     </div>
 
     <div class="compare">
-      <div class="compare-col">
+      <div class="compare-col reveal" style="--d:0">
         <h3>
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--muted)" stroke-width="1.6" stroke-linecap="round" aria-hidden="true"><path d="M4 4h16v16H4z" opacity=".35"/><path d="M8 12h8M12 8v8"/></svg>
           Hosted image CDN
@@ -599,7 +661,7 @@
           <li><span class="mark">·</span> Background removal is usually a paid add-on</li>
         </ul>
       </div>
-      <div class="compare-col is-good">
+      <div class="compare-col is-good reveal" style="--d:1">
         <h3>
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m5 13 4 4L19 7"/></svg>
           Fottly, self-hosted
@@ -618,7 +680,7 @@
 
 <section id="features">
   <div class="wrap">
-    <div class="section-intro">
+    <div class="section-intro reveal">
       <p class="eyebrow">Features</p>
       <h2>Everything happens through the URL.</h2>
       <p class="lead">
@@ -628,7 +690,7 @@
     </div>
 
     <div class="features">
-      <div class="feature">
+      <div class="feature reveal" style="--d:0">
         <div class="icon">
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 3h7v7H3zM14 14h7v7h-7z"/><path d="M14 3h7v7"/><path d="M10 21H3v-7"/></svg>
         </div>
@@ -636,7 +698,7 @@
         <p>Set width and height with <code>w_</code> and <code>h_</code>. Choose <code>c_fill</code> to crop to an exact box, or <code>c_fit</code> to keep the whole image inside it.</p>
       </div>
 
-      <div class="feature">
+      <div class="feature reveal" style="--d:1">
         <div class="icon">
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 9h14l-4-4"/><path d="M21 15H7l4 4"/></svg>
         </div>
@@ -644,7 +706,7 @@
         <p>Convert on the fly with <code>f_webp</code>, <code>f_avif</code>, <code>f_jpeg</code> or <code>f_png</code>, and tune compression with <code>q_80</code>.</p>
       </div>
 
-      <div class="feature">
+      <div class="feature reveal" style="--d:2">
         <div class="icon">
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3a4 4 0 0 1 4 4c0 2.5-4 4.5-4 4.5S8 9.5 8 7a4 4 0 0 1 4-4Z"/><path d="M4.5 20.5c2-3 4.8-4.5 7.5-4.5s5.5 1.5 7.5 4.5"/></svg>
         </div>
@@ -652,7 +714,7 @@
         <p>Add <code>bg_remove</code> to cut the main subject out onto a transparent background, powered by Rembg running as an internal service.</p>
       </div>
 
-      <div class="feature">
+      <div class="feature reveal" style="--d:3">
         <div class="icon">
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="2"/><rect x="12.5" y="12.5" width="6" height="6" rx="1"/></svg>
         </div>
@@ -660,7 +722,7 @@
         <p>Overlay any image from your bucket with <code>wm_</code>, and control corner, size and opacity with <code>wg_</code>, <code>ws_</code> and <code>wo_</code>.</p>
       </div>
 
-      <div class="feature">
+      <div class="feature reveal" style="--d:4">
         <div class="icon">
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 12a9 9 0 1 1-3.2-6.9"/><path d="M21 4v5h-5"/></svg>
         </div>
@@ -668,7 +730,7 @@
         <p>Every result is cached in your bucket, so the same request is never processed twice. Deleting or renaming a file clears its derived cache.</p>
       </div>
 
-      <div class="feature">
+      <div class="feature reveal" style="--d:5">
         <div class="icon">
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><ellipse cx="12" cy="6" rx="8" ry="3"/><path d="M4 6v6c0 1.7 3.6 3 8 3s8-1.3 8-3V6"/><path d="M4 12v6c0 1.7 3.6 3 8 3s8-1.3 8-3v-6"/></svg>
         </div>
@@ -676,7 +738,7 @@
         <p>Works with AWS S3, Cloudflare R2 or a local MinIO. Point it at a bucket with environment variables — no proprietary storage layer.</p>
       </div>
 
-      <div class="feature">
+      <div class="feature reveal" style="--d:6">
         <div class="icon">
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 4h6l2 2h8v12H4z"/><path d="M12 11v4M10 13h4"/></svg>
         </div>
@@ -684,7 +746,7 @@
         <p>Upload, rename and delete through a small authenticated API. Cache invalidation is handled for you on every change.</p>
       </div>
 
-      <div class="feature">
+      <div class="feature reveal" style="--d:7">
         <div class="icon">
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14"/><path d="m13 6 6 6-6 6"/></svg>
         </div>
@@ -697,7 +759,7 @@
 
 <section id="api">
   <div class="wrap">
-    <div class="section-intro">
+    <div class="section-intro reveal">
       <p class="eyebrow">URL API</p>
       <h2>Composable parameters, comma separated.</h2>
       <p class="lead">
@@ -707,7 +769,7 @@
       </p>
     </div>
 
-    <div class="code-block">
+    <div class="code-block reveal">
       <div class="code-head">
         <span class="label">Transformation examples</span>
         <button class="copy-btn" type="button" data-copy="#api-code">Copy</button>
@@ -728,7 +790,7 @@
 /t/<span class="c-param">w_800,c_fit,bg_remove,wm_logo.png,f_webp,q_75</span>/<span class="c-path">product.jpg</span></pre>
     </div>
 
-    <div class="params">
+    <div class="params reveal" style="--d:1">
       <div class="param"><b>w_</b> width in pixels</div>
       <div class="param"><b>h_</b> height in pixels</div>
       <div class="param"><b>f_</b> webp · avif · jpeg · png</div>
@@ -745,13 +807,13 @@
 
 <section id="open-source">
   <div class="wrap">
-    <div class="section-intro">
+    <div class="section-intro reveal">
       <p class="eyebrow">Self-hosted &amp; AGPL-3.0</p>
       <h2>Infrastructure you control, licensed so it stays that way.</h2>
     </div>
 
     <div class="split">
-      <div class="prose-card">
+      <div class="prose-card reveal" style="--d:0">
         <h3>What self-hosting gets you</h3>
         <p>
           Fottly runs as a small set of containers next to your own services. Source
@@ -769,7 +831,7 @@
         </p>
       </div>
 
-      <div class="prose-card">
+      <div class="prose-card reveal" style="--d:1">
         <h3>What AGPL-3.0 means for you</h3>
         <p>
           Fottly is released under the <strong>GNU Affero General Public License v3.0</strong>.
@@ -792,7 +854,7 @@
 
 <section id="cloud">
   <div class="wrap">
-    <div class="section-intro">
+    <div class="section-intro reveal">
       <p class="eyebrow">Fottly Cloud</p>
       <h2>Don't want to run the server yourself?</h2>
       <p class="lead">
@@ -801,56 +863,96 @@
       </p>
     </div>
 
-    <div class="cloud-grid">
-      <ul class="cloud-list">
-        <li>
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m5 13 4 4L19 7"/></svg>
-          Same URL API as self-hosted — no code changes if you ever switch either way
-        </li>
-        <li>
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m5 13 4 4L19 7"/></svg>
-          Flat monthly pricing — no metering, no surprise invoices as traffic grows
-        </li>
-        <li>
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m5 13 4 4L19 7"/></svg>
-          Managed HTTPS, backups and updates — you never touch a server
-        </li>
-        <li>
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m5 13 4 4L19 7"/></svg>
-          Your own isolated instance and subdomain, not a shared multi-tenant pool
-        </li>
-        <li>
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m5 13 4 4L19 7"/></svg>
-          Same AGPL-3.0 engine underneath — nothing proprietary to get locked into
-        </li>
-      </ul>
+    <ul class="cloud-list reveal">
+      <li>
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m5 13 4 4L19 7"/></svg>
+        Same URL API as self-hosted — no code changes if you ever switch either way
+      </li>
+      <li>
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m5 13 4 4L19 7"/></svg>
+        Flat monthly pricing — no metering, no surprise invoices as traffic grows
+      </li>
+      <li>
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m5 13 4 4L19 7"/></svg>
+        Managed HTTPS, backups and updates — you never touch a server
+      </li>
+      <li>
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m5 13 4 4L19 7"/></svg>
+        Your own API key and subdomain, live in minutes — no server to set up
+      </li>
+      <li>
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m5 13 4 4L19 7"/></svg>
+        Same AGPL-3.0 engine underneath — nothing proprietary to get locked into
+      </li>
+    </ul>
 
-      <div class="cloud-card">
-        <p class="eyebrow" style="margin-bottom:var(--s2);">First 15 founding customers</p>
+    <p class="cloud-pricing-banner reveal"><strong>Founding customer pricing</strong> — 40% off, locked in forever, for our first 20 customers on any plan.</p>
+
+    <div class="cloud-pricing-grid">
+      <div class="cloud-card reveal" style="--d:0">
+        <p class="cloud-plan-name">Starter</p>
         <div class="cloud-price">
-          <span style="font-size:20px;color:var(--muted);text-decoration:line-through;">€29</span>
-          <span class="cloud-price-amount">€19</span><span class="cloud-price-period">/month</span>
+          <span style="font-size:18px;color:var(--muted);text-decoration:line-through;">€29</span>
+          <span class="cloud-price-amount">€17,40</span><span class="cloud-price-period">/month</span>
         </div>
-        <p class="cloud-price-note">Locked in forever. 7-day free trial. Cancel anytime.</p>
-        <a href="https://buy.stripe.com/4gMcN64Jq32CexU18ObII03?prefilled_promo_code=FOUNDER15" target="_blank" rel="noopener noreferrer" class="btn btn-primary" style="width:100%;">Start free trial</a>
-        <p class="cloud-fine">Setup within 24 hours — we'll email you your server URL, API key, and a link to your own interactive editor.</p>
+        <p class="cloud-price-note">Up to 10,000 images/month.</p>
+        <ul class="cloud-plan-list">
+          <li><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m5 13 4 4L19 7"/></svg> Up to 10,000 images/month</li>
+          <li><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m5 13 4 4L19 7"/></svg> Your own API key and subdomain</li>
+          <li><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m5 13 4 4L19 7"/></svg> Email support</li>
+        </ul>
+        <a href="https://buy.stripe.com/6oUeVe6RydHg9dAcRwbII04?prefilled_promo_code=FOUNDER40" target="_blank" rel="noopener noreferrer" class="btn btn-primary" style="width:100%;">Start free trial</a>
         <p class="cloud-fine">Card required to start the trial — you're not charged for 7 days.</p>
-        <p class="cloud-alt">Prefer to run it yourself? It's free and open-source — <a href="https://github.com/Noah-1919/Fottly">see the docs on GitHub</a>.</p>
+      </div>
+
+      <div class="cloud-card cloud-card-popular reveal" style="--d:1">
+        <span class="cloud-card-badge">Most popular</span>
+        <p class="cloud-plan-name">Growth</p>
+        <div class="cloud-price">
+          <span style="font-size:18px;color:var(--muted);text-decoration:line-through;">€90</span>
+          <span class="cloud-price-amount">€54</span><span class="cloud-price-period">/month</span>
+        </div>
+        <p class="cloud-price-note">Up to 40,000 images/month.</p>
+        <ul class="cloud-plan-list">
+          <li><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m5 13 4 4L19 7"/></svg> Up to 40,000 images/month</li>
+          <li><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m5 13 4 4L19 7"/></svg> Your own API key and subdomain</li>
+          <li><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m5 13 4 4L19 7"/></svg> Priority email support</li>
+        </ul>
+        <a href="https://buy.stripe.com/5kQfZigs832C3Tg8BgbII05?prefilled_promo_code=FOUNDER40" target="_blank" rel="noopener noreferrer" class="btn btn-primary" style="width:100%;">Start free trial</a>
+        <p class="cloud-fine">Card required to start the trial — you're not charged for 7 days.</p>
+      </div>
+
+      <div class="cloud-card reveal" style="--d:2">
+        <p class="cloud-plan-name">Business</p>
+        <div class="cloud-price">
+          <span style="font-size:18px;color:var(--muted);text-decoration:line-through;">€200</span>
+          <span class="cloud-price-amount">€120</span><span class="cloud-price-period">/month</span>
+        </div>
+        <p class="cloud-price-note">Up to 100,000 images/month.</p>
+        <ul class="cloud-plan-list">
+          <li><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m5 13 4 4L19 7"/></svg> Up to 100,000 images/month</li>
+          <li><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m5 13 4 4L19 7"/></svg> Your own API key and subdomain, sized for volume</li>
+          <li><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m5 13 4 4L19 7"/></svg> Priority support</li>
+        </ul>
+        <a href="https://buy.stripe.com/bJefZi5Nu32C61obNsbII06?prefilled_promo_code=FOUNDER40" target="_blank" rel="noopener noreferrer" class="btn btn-primary" style="width:100%;">Start free trial</a>
+        <p class="cloud-fine">Card required to start the trial — you're not charged for 7 days.</p>
       </div>
     </div>
 
+    <p class="cloud-alt reveal" style="text-align:center;margin-bottom:var(--s12);">Prefer to run it yourself? It's free and open-source — <a href="https://github.com/Noah-1919/Fottly">see the docs on GitHub</a>.</p>
+
     <div class="cloud-faq">
-      <div class="prose-card">
+      <div class="prose-card reveal" style="--d:0">
         <h3>What happens after the trial?</h3>
-        <p>Your card is charged automatically once the 7 days end, at the rate shown at signup (€19/mo for founding customers, locked in forever). Cancel anytime before that from your <a href="https://billing.stripe.com/p/login/aFa8wQfo4dHgexUdVAbII00">billing portal</a> and you won't be charged at all.</p>
+        <p>Your card is charged automatically once the 7 days end, at the plan and rate shown at signup — locked in forever for founding customers. Cancel anytime before that from your <a href="https://billing.stripe.com/p/login/aFa8wQfo4dHgexUdVAbII00">billing portal</a> and you won't be charged at all.</p>
       </div>
-      <div class="prose-card">
+      <div class="prose-card reveal" style="--d:1">
         <h3>Can I move to self-hosting later?</h3>
         <p>Yes. Cloud runs the same open-source engine, so the same URL syntax works against your own server whenever you're ready — no rewrite, no lock-in.</p>
       </div>
-      <div class="prose-card">
+      <div class="prose-card reveal" style="--d:2">
         <h3>Where does my data live?</h3>
-        <p>On your own isolated Fottly instance and storage bucket, on EU infrastructure (Hetzner, Germany), reachable only over HTTPS.</p>
+        <p>On Fottly Cloud's storage, on EU infrastructure (Hetzner, Germany), reachable only over HTTPS via your own API key and subdomain.</p>
       </div>
     </div>
   </div>
@@ -858,7 +960,7 @@
 
 <section id="start">
   <div class="wrap">
-    <div class="section-intro">
+    <div class="section-intro reveal">
       <p class="eyebrow">Get started</p>
       <h2>One command to a running stack.</h2>
       <p class="lead">
@@ -867,7 +969,7 @@
       </p>
     </div>
 
-    <div class="code-block" style="margin-bottom: var(--s6);">
+    <div class="code-block reveal" style="margin-bottom: var(--s6);">
       <div class="code-head">
         <span class="label">Terminal</span>
         <button class="copy-btn" type="button" data-copy="#start-code">Copy</button>
@@ -876,7 +978,7 @@
     </div>
 
     <div class="steps">
-      <div class="step">
+      <div class="step reveal" style="--d:0">
         <span class="step-num">1</span>
         <div class="step-body">
           <strong>Bring up the stack.</strong> You get the transformation service on
@@ -884,14 +986,14 @@
           running privately inside the compose network.
         </div>
       </div>
-      <div class="step">
+      <div class="step reveal" style="--d:1">
         <span class="step-num">2</span>
         <div class="step-body">
           <strong>Add an image.</strong> Drop a file into the bucket from the MinIO console,
           the <code>mc</code> CLI, or the authenticated upload endpoint.
         </div>
       </div>
-      <div class="step">
+      <div class="step reveal" style="--d:2">
         <span class="step-num">3</span>
         <div class="step-body">
           <strong>Request a transformation.</strong> Open
@@ -899,7 +1001,7 @@
           delivery URLs are public, so it just works.
         </div>
       </div>
-      <div class="step">
+      <div class="step reveal" style="--d:3">
         <span class="step-num">4</span>
         <div class="step-body">
           <strong>Point it at real storage.</strong> Swap the S3 environment variables for
@@ -908,7 +1010,7 @@
       </div>
     </div>
 
-    <div class="hero-cta" style="margin-bottom:0;">
+    <div class="hero-cta reveal" style="margin-bottom:0;">
       <a href="https://github.com/Noah-1919/Fottly" class="btn btn-primary">Read the docs on GitHub</a>
       <a href="demo.html" class="btn btn-secondary">Open the interactive demo</a>
     </div>
@@ -949,6 +1051,21 @@ document.querySelectorAll(".copy-btn").forEach((btn) => {
     }
   });
 });
+
+// Reveal-on-scroll. Only enabled when IntersectionObserver is supported;
+// otherwise .reveal elements stay at their default, fully-visible state.
+if ("IntersectionObserver" in window) {
+  document.documentElement.classList.add("js-reveal");
+  const io = new IntersectionObserver((entries) => {
+    entries.forEach((entry) => {
+      if (entry.isIntersecting) {
+        entry.target.classList.add("is-visible");
+        io.unobserve(entry.target);
+      }
+    });
+  }, { threshold: 0.15, rootMargin: "0px 0px -8% 0px" });
+  document.querySelectorAll(".reveal").forEach((el) => io.observe(el));
+}
 </script>
 </body>
 </html>
